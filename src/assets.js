@@ -53,19 +53,6 @@ import wxCloud from './assets/fig/a6a47.png'
 import wxSnow from './assets/fig/6d44b.png'
 import wxSunCloud from './assets/fig/d91d2.png'
 import wxRainSnow from './assets/fig/805a2.png'
-import mapIsland from './assets/fig/2457c.jpg'
-import mapZoom from './assets/fig/3a7e3.jpg'
-import mapFusion from './assets/fig/c2fdd.jpg'
-import routeWorkCount from './assets/fig/99429.svg'
-import routeSurface from './assets/fig/31ee3.svg'
-import vehZoomType01 from './assets/fig/0ff32.svg'
-import vehZoom3 from './assets/fig/ee87d.svg'
-import vehZoom1 from './assets/fig/d4857.svg'
-import vehZoom9 from './assets/fig/aff85.svg'
-import statsTrend from './assets/fig/5430e.svg'
-import fusionL4 from './assets/fig/d17ad.svg'
-import fusionL2 from './assets/fig/5d775.svg'
-import fusionLinks from './assets/fig/b2513.svg'
 import fusionHalo from './assets/fig/1017f.svg'
 import veh1 from './assets/fig/927a3.svg'
 import veh2 from './assets/fig/c41a3.svg'
@@ -79,16 +66,6 @@ import veh9 from './assets/fig/bce9f.svg'
 import veh10 from './assets/fig/c4827.svg'
 import veh11 from './assets/fig/3367d.svg'
 import veh12 from './assets/fig/24e81.svg'
-import trail1 from './assets/fig/d6af1.svg'
-import trail2 from './assets/fig/a1d80.svg'
-import trail3 from './assets/fig/b8a4d.svg'
-import trail4 from './assets/fig/8b178.svg'
-import trail6 from './assets/fig/a32d8.svg'
-import trail7 from './assets/fig/a6fb6.svg'
-import trail8 from './assets/fig/21a05.svg'
-import trail9 from './assets/fig/46171.svg'
-import trail10 from './assets/fig/82262.svg'
-import trail11 from './assets/fig/f719f.svg'
 
 export const A = {
   logo, icMenuDashboard, icMenuChart, icMenuFusion, icCollapse, icMonitor, icLogout, icSettings,
@@ -97,10 +74,9 @@ export const A = {
   icZoomOut, icTooltipTip, icDistance, icArea, icCctv, icObserve, icLegendRefreeze, icVideo,
   icVideoWhite, dotWorking, dotStandby, dotDone, icClose, videoRoad, videoLiveDot, videoPlay,
   alertDot, icStatusMinor, icStatusWarning, icAlert, unreadDot, realtimeDot, icToggleOn,
-  icCalendar, thumbMap, thumbSatellite, wxCloud, wxSnow, wxSunCloud, wxRainSnow, mapIsland,
-  mapZoom, mapFusion, routeWorkCount, routeSurface, vehZoomType01, vehZoom3, vehZoom1, vehZoom9,
-  statsTrend, fusionL4, fusionL2, fusionLinks, fusionHalo,
+  icCalendar, thumbMap, thumbSatellite, wxCloud, wxSnow, wxSunCloud, wxRainSnow, 
+  
+  fusionHalo,
 }
 
 export const VEHICLE_ICONS = { 1: veh1, 2: veh2, 3: veh3, 4: veh4, 5: veh5, 6: veh6, 7: veh7, 8: veh8, 9: veh9, 10: veh10, 11: veh11, 12: veh12 }
-export const TRAIL_ICONS = { 1: trail1, 2: trail2, 3: trail3, 4: trail4, 6: trail6, 7: trail7, 8: trail8, 9: trail9, 10: trail10, 11: trail11 }

@@ -31,6 +31,21 @@ Figma 시안(포트홀 flow · `448:1169`)을 기반으로 만든 **Vite + React
 
 알림 읽음 상태, 배치 설정, 송수신 이력은 브라우저 localStorage에 저장됩니다. 데이터 연계 모니터링의 기준일(‘오늘’)은 시안 데이터에 맞춰 2026-10-19입니다.
 
+## 지도 연계 (K-Geo플랫폼 · 브이월드)
+
+요구사항(GIS-013·014, UC-GIS-013)에 따라 자체 배경지도를 쓰지 않고 국토교통부 K-Geo플랫폼 공간정보를 **브이월드 오픈API**로 연계합니다. 지도 엔진은 OpenLayers입니다.
+
+| 기능 | 연계 API |
+|---|---|
+| 일반지도 | WMTS `Base` |
+| 위성지도 | WMTS `Satellite` + `Hybrid` |
+| 연속지적도 | WMS `lp_pa_cbnd_bubun`, `lp_pa_cbnd_bonbun` (확대 레벨 15 이상) |
+| 타일 캐싱·프리페치 | OpenLayers 타일 캐시(`cacheSize`)·`preload` |
+
+- 인증키는 `VITE_VWORLD_KEY` 환경변수로 주입합니다. 로컬은 `.env.example`을 `.env.local`로 복사해 키를 넣고, 배포는 GitHub 저장소 Secret `VWORLD_KEY`에 등록합니다.
+- 키가 없으면 개발용 임시 배경지도(OpenStreetMap)로 표시되고, 화면 왼쪽 아래에 안내 문구가 나옵니다.
+- 노선·구간·차량·CCTV 좌표(`src/data/geo.js`)는 목업용 근사치이며, 운영 시 스마트빌리지 인프라 연계 데이터로 교체합니다.
+
 ## 개발
 
 ```bash
@@ -44,7 +59,7 @@ npm run build    # dist/ 생성 (SPA 라우팅용 404.html 포함)
 - React 19 · React Router 7 (`BrowserRouter`, `basename=/jeju-snow/`)
 - Vite 8 (`base: '/jeju-snow/'`)
 - 순수 CSS (Figma 변수 기반 CSS 커스텀 프로퍼티), 외부 UI 라이브러리 없음
-- 지도는 Figma 시안의 정적 이미지 위에 차량·CCTV·기상 레이어를 오버레이 (드래그 이동, 확대/축소 지원)
+- 지도: OpenLayers + 브이월드(K-Geo플랫폼) 배경지도, 노선은 벡터 레이어, 마커는 실제 경위도 기준
 
 ## 배포
 

@@ -1,15 +1,29 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useOutletContext } from 'react-router-dom'
-import { A, VEHICLE_ICONS, TRAIL_ICONS } from '../assets.js'
+import Feature from 'ol/Feature.js'
+import LineString from 'ol/geom/LineString.js'
+import Draw from 'ol/interaction/Draw.js'
+import VectorLayer from 'ol/layer/Vector.js'
+import VectorSource from 'ol/source/Vector.js'
+import { getArea, getLength } from 'ol/sphere.js'
+import { boundingExtent } from 'ol/extent.js'
+import { Stroke, Style, Fill, Circle as CircleStyle } from 'ol/style.js'
+import { A, VEHICLE_ICONS } from '../assets.js'
 import { Checkbox, Radio } from '../components/Controls.jsx'
-import { CCTV, MAP_VEHICLES, TRAILS, VEHICLES, WEATHER } from '../data/dashboard.js'
-import { KM_PER_PX, RISK_COLOR, ROUTE_LABELS, SEGMENTS, STATE_COLOR, nearestRegion, segName } from '../data/segments.js'
+import { VEHICLES } from '../data/dashboard.js'
+import {
+  CCTV_GEO, COUNT_COLORS, DETAIL_COUNTS, DETAIL_PLACES, DETAIL_ROUTE, DETAIL_SURFACE, JEJU_CENTER, ROUTES, SEGMENTS_GEO, SURFACE_COLORS,
+  VEHICLES_GEO, WEATHER_GEO, nearestRegionGeo, vehicleTrack,
+} from '../data/geo.js'
+import { RISK_COLOR, SEGMENTS, STATE_COLOR, segName } from '../data/segments.js'
+import { HAS_VWORLD, createBaseLayers, createCadastralLayer } from '../map/basemap.js'
+import { fromLonLat, toLonLat, useOlMap } from '../map/useOlMap.js'
 import DashboardPanel from './dashboard/DashboardPanel.jsx'
 import VehiclePanel from './dashboard/VehiclePanel.jsx'
 import VehiclePopup from './dashboard/VehiclePopup.jsx'
 import './dashboard.css'
 
-// UI-SIRS-001-01 ~ 04 통합 관제 대시보드
+// UI-SIRS-001-01 ~ 04 통합 관제 대시보드 — OpenLayers + K-Geo플랫폼(브이월드) 배경지도
 const BASE_LAYERS = ['기상정보', '연속지적도', '적설 감시 CCTV']
 const SECTION_LAYERS = ['주요 교통량 축', '제설 우선노선', '상습 결빙/파손 구간', '재결빙 위험 구간', '블랙아이스 및 위험구간']
 const MODES = [
@@ -19,24 +33,13 @@ const MODES = [
 ]
 const LEGENDS = {
   status: { title: '구간', items: [['#f93c65', '미작업'], ['#ff8a3d', '제설 필요'], ['#fcbe2d', '진행'], ['#00b69b', '완료'], [null, '재결빙 주의']] },
-  count: { title: '제설 횟수', items: [['#334155', '미작업'], ['#2563eb', '1회'], ['#f97316', '2회'], ['#0d9488', '3회'], ['#7e22ce', '4회']] },
-  surface: {
-    title: '도로상태',
-    items: [['#334155', '오류'], ['#22c55e', '건조'], ['#60a5fa', '습기'], ['#1d4ed8', '젖음'], ['#ec4899', '적설'], ['#ef4444', '아이스'], ['#f97316', '슬러시']],
-  },
+  count: { title: '제설 횟수', items: [0, 1, 2, 3, 4].map((n) => [COUNT_COLORS[n], n ? `${n}회` : '미작업']) },
+  surface: { title: '도로상태', items: Object.entries(SURFACE_COLORS).map(([k, c]) => [c, k]) },
 }
-// 노선 상세(1100도로) 구간별 제설 횟수 라벨 (UI-SIRS-001-02·03)
-const COUNT_LABELS = [
-  [620, 110, 2, '어승생 입구', '09:42'], [632, 221, 3, '어리목', '10:05'], [635, 350, 4, '1100고지', '10:18'], [573, 432, 3, '영실 입구', '09:55'],
-  [559, 579, 2, '거린사슴', '09:20'], [547, 667, 1, '서귀포자연휴양림', '08:40'], [508, 803, 1, '중문 방면', '08:15'],
-].map(([x, y, n, place, at]) => ({ x: 17 + x, y: 17 + y, n, place, at }))
-const COUNT_COLORS = { 1: '#2563eb', 2: '#f97316', 3: '#0d9488', 4: '#7e22ce' }
-const SURFACE_AT = ['아이스 · -3.8℃', '슬러시 · -1.2℃', '적설 · -2.1℃', '아이스 · -3.1℃', '젖음 · -0.4℃', '아이스 · -2.6℃', '젖음 · 0.3℃']
-
-const ORIGIN = { x: 560, y: 430 } // 지도 확대 기준점
+const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
 const PANEL_W = 380
-const toScreen = (p, v) => ({ x: ORIGIN.x + (p.x - ORIGIN.x) * v.z + v.x, y: ORIGIN.y + (p.y - ORIGIN.y) * v.z + v.y })
-const toBase = (s, v) => ({ x: ORIGIN.x + (s.x - v.x - ORIGIN.x) / v.z, y: ORIGIN.y + (s.y - v.y - ORIGIN.y) / v.z })
+const segGeo = (s) => SEGMENTS_GEO[s.code]
+const detailRoute = ROUTES.find((r) => r.name === DETAIL_ROUTE)
 
 export default function Dashboard() {
   const { setToast } = useOutletContext()
@@ -51,23 +54,79 @@ export default function Dashboard() {
   const [legendOpen, setLegendOpen] = useState(true)
   const [segCode, setSegCode] = useState('K-12')
   const [selected, setSelected] = useState(null) // VEHICLES index
-  const [view, setView] = useState({ x: 0, y: 0, z: 1 })
   const [tool, setTool] = useState(null) // 'distance' | 'area'
-  const [points, setPoints] = useState([])
-  const [size, setSize] = useState({ w: 1246, h: 919 })
-  const mapRef = useRef(null)
-  const drag = useRef(null)
+  const [measure, setMeasure] = useState(null) // { text, at }
 
-  useLayoutEffect(() => {
-    const el = mapRef.current
-    if (!el) return
-    const ro = new ResizeObserver(([e]) => setSize({ w: e.contentRect.width, h: e.contentRect.height }))
-    ro.observe(el)
-    return () => ro.disconnect()
+  // 지도 상태를 스타일 함수에서 읽기 위한 ref
+  const live = useRef({ mode, selectedMapId: null, tab })
+  const selectedVehicle = selected != null ? VEHICLES[selected] : null
+  const selectedMapId = selectedVehicle?.mapId ?? null
+  live.current = { mode, selectedMapId, tab }
+
+  const layerRefs = useRef({})
+  const { elRef, mapRef, tick, pixelOf } = useOlMap({
+    center: JEJU_CENTER,
+    zoom: 10.3,
+    layers: () => {
+      const base = createBaseLayers()
+      const cadastral = createCadastralLayer()
+      const routes = new VectorLayer({ source: new VectorSource(), style: (f) => routeStyle(f, live.current), updateWhileAnimating: true, updateWhileInteracting: true })
+      const trails = new VectorLayer({ source: new VectorSource(), style: (f) => trailStyle(f, live.current), visible: false })
+      const measureLayer = new VectorLayer({
+        source: new VectorSource(),
+        style: new Style({ stroke: new Stroke({ color: '#37348f', width: 2.5, lineDash: [6, 4] }), fill: new Fill({ color: 'rgba(55,52,143,0.15)' }), image: new CircleStyle({ radius: 4, fill: new Fill({ color: '#fff' }), stroke: new Stroke({ color: '#37348f', width: 2 }) }) }),
+      })
+      // 노선 라인: 구간(edge)마다 feature 하나
+      ROUTES.forEach((r) =>
+        r.coords.slice(0, -1).forEach((a, i) => {
+          const f = new Feature(new LineString([fromLonLat(a), fromLonLat(r.coords[i + 1])]))
+          f.setProperties({ route: r.name, idx: i, state: r.states[i] })
+          routes.getSource().addFeature(f)
+        }),
+      )
+      VEHICLES_GEO.forEach((v) => {
+        const f = new Feature(new LineString(vehicleTrack(v).trail.map((c) => fromLonLat(c))))
+        f.set('vehicle', v.id)
+        trails.getSource().addFeature(f)
+      })
+      layerRefs.current = { base, cadastral, routes, trails, measureLayer }
+      return [...base.normal, ...(base.satellite ?? []), ...(cadastral ? [cadastral] : []), routes, trails, measureLayer]
+    },
+  })
+
+  // 레이어 표시 상태 동기화
+  useEffect(() => {
+    const { base, cadastral, routes, trails } = layerRefs.current
+    base.normal.forEach((l) => l.setVisible(basemap === 'normal' || !base.satellite))
+    base.satellite?.forEach((l) => l.setVisible(basemap === 'satellite'))
+    cadastral?.setVisible(layers.has('연속지적도'))
+    trails.setVisible(tab === 'vehicles' && mode === 'status')
+    routes.changed()
+    trails.changed()
+  }, [basemap, layers, tab, mode, selectedMapId])
+
+  // 지도 가운데(우측 패널 제외) 좌표 → 행정구역 경로
+  const size = mapRef.current?.getSize() ?? [1246, 919]
+  const visibleCenterPx = [(size[0] - (panelOpen ? PANEL_W : 0)) / 2, size[1] / 2]
+  const centerCoord = mapRef.current?.getCoordinateFromPixel(visibleCenterPx)
+  const region = nearestRegionGeo(centerCoord ? toLonLat(centerCoord) : JEJU_CENTER)
+
+  const flyTo = (lonlat, zoom = 12.5) => {
+    const view = mapRef.current?.getView()
+    if (!view) return
+    const res = view.getResolutionForZoom(zoom)
+    const c = fromLonLat(lonlat)
+    view.animate({ center: [c[0] + (panelOpen ? (PANEL_W / 2) * res : 0), c[1]], zoom, duration: 450 })
+  }
+  const fitTo = (coords, duration = 450) => {
+    mapRef.current?.getView().fit(boundingExtent(coords.map((c) => fromLonLat(c))), { padding: [60, panelOpen ? PANEL_W + 60 : 80, 40, 245], duration, maxZoom: 13 })
+  }
+  // 제주 전역 보기 — 처음 열 때와 '제설 작업 상태'로 돌아올 때
+  const fitIsland = (duration) => fitTo([...ROUTES.flatMap((r) => r.coords), ...WEATHER_GEO.map((w) => w.at)], duration)
+  useEffect(() => {
+    fitIsland(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const visibleCenter = { x: (size.w - (panelOpen ? PANEL_W : 0)) / 2, y: size.h / 2 }
-  const centerOn = (p, z = view.z) => setView({ z, x: visibleCenter.x - ORIGIN.x - (p.x - ORIGIN.x) * z, y: visibleCenter.y - ORIGIN.y - (p.y - ORIGIN.y) * z })
 
   // 알림 선택 → 해당 구간으로 지도 이동 (UC-EVT-001 기본 흐름 4)
   const focus = location.state
@@ -79,79 +138,72 @@ export default function Dashboard() {
     setTab('dashboard')
     setSelected(null)
     setSegCode(s.code)
-    centerOn(s, 1.3)
+    setTimeout(() => flyTo(segGeo(s), 12.5), 60)
     setToast(`${segName(s)} 구간으로 이동했습니다.`)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus?.nonce])
 
-  const toggleLayer = (name) =>
+  const toggleLayer = (name) => {
+    if (name === '연속지적도' && !HAS_VWORLD && !layers.has(name)) setToast('연속지적도는 브이월드 인증키를 설정하면 표출됩니다.')
     setLayers((s) => {
       const n = new Set(s)
       if (n.has(name)) n.delete(name)
       else n.add(name)
       return n
     })
+  }
 
+  // 제설 작업 레이어(택1) — 작업 횟수·노면 상태는 1100도로 상세로 확대 (UI-SIRS-001-02·03)
   const changeMode = (m) => {
     setMode(m)
-    setView({ x: 0, y: 0, z: 1 })
-    setTool(null)
-    setPoints([])
+    stopMeasure()
+    if (m === 'status') fitIsland()
+    else fitTo(detailRoute.coords)
   }
-  const zoom = (d) => setView((v) => ({ ...v, z: Math.min(2.4, Math.max(0.6, +(v.z + d).toFixed(2))) }))
+  const zoom = (d) => {
+    const v = mapRef.current?.getView()
+    v?.animate({ zoom: v.getZoom() + d, duration: 250 })
+  }
 
-  // 지도 이동(드래그)·측정 클릭
-  const localPoint = (e) => {
-    const r = mapRef.current.getBoundingClientRect()
-    return { x: e.clientX - r.left, y: e.clientY - r.top }
-  }
-  const onPointerDown = (e) => {
-    if (e.button !== 0 || e.target.closest('button')) return
-    drag.current = { sx: e.clientX, sy: e.clientY, ox: view.x, oy: view.y, moved: false }
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
-  const onPointerMove = (e) => {
-    const d = drag.current
-    if (!d) return
-    if (Math.abs(e.clientX - d.sx) + Math.abs(e.clientY - d.sy) > 4) d.moved = true
-    if (d.moved) setView((v) => ({ ...v, x: d.ox + e.clientX - d.sx, y: d.oy + e.clientY - d.sy }))
-  }
-  const onPointerUp = (e) => {
-    const d = drag.current
-    drag.current = null
-    if (d && !d.moved && tool) setPoints((p) => [...p, toBase(localPoint(e), view)])
+  // 거리·면적 재기 — ol/sphere 로 실제 측지 거리·면적 계산
+  const drawRef = useRef(null)
+  const stopMeasure = () => {
+    if (drawRef.current) mapRef.current?.removeInteraction(drawRef.current)
+    drawRef.current = null
+    layerRefs.current.measureLayer?.getSource().clear()
+    setTool(null)
+    setMeasure(null)
   }
   const startTool = (t) => {
-    setPoints([])
-    setTool((cur) => (cur === t ? null : t))
-    if (tool !== t) setToast(t === 'distance' ? '지도를 클릭해 거리를 잴 지점을 찍으세요. (Esc: 종료)' : '지도를 클릭해 면적을 잴 영역을 그리세요. (Esc: 종료)')
+    const map = mapRef.current
+    const was = tool
+    stopMeasure()
+    if (was === t) return
+    const draw = new Draw({ source: layerRefs.current.measureLayer.getSource(), type: t === 'distance' ? 'LineString' : 'Polygon' })
+    draw.on('drawstart', () => { layerRefs.current.measureLayer.getSource().clear(); setMeasure(null) })
+    draw.on('drawend', (e) => {
+      const g = e.feature.getGeometry()
+      const text = t === 'distance' ? fmtLength(getLength(g)) : fmtArea(getArea(g))
+      const at = toLonLat(t === 'distance' ? g.getLastCoordinate() : g.getInteriorPoint().getCoordinates())
+      setMeasure({ text: `${t === 'distance' ? '총 거리' : '면적'} ${text}`, at })
+    })
+    map.addInteraction(draw)
+    drawRef.current = draw
+    setTool(t)
+    setToast(t === 'distance' ? '지도를 클릭해 지점을 찍고, 더블클릭으로 끝내세요. (Esc: 종료)' : '지도를 클릭해 영역을 그리고, 더블클릭으로 끝내세요. (Esc: 종료)')
   }
   useEffect(() => {
-    const esc = (e) => e.key === 'Escape' && (setTool(null), setPoints([]))
+    const esc = (e) => e.key === 'Escape' && stopMeasure()
     document.addEventListener('keydown', esc)
     return () => document.removeEventListener('keydown', esc)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const measure = useMemo(() => {
-    if (points.length < 2) return null
-    const km = (a, b) => Math.hypot(a.x - b.x, a.y - b.y) * KM_PER_PX
-    if (tool === 'distance') return `${points.slice(1).reduce((s, p, i) => s + km(points[i], p), 0).toFixed(2)} km`
-    if (points.length < 3) return null
-    const area = Math.abs(points.reduce((s, p, i) => { const q = points[(i + 1) % points.length]; return s + p.x * q.y - q.x * p.y }, 0)) / 2
-    return `${(area * KM_PER_PX ** 2).toFixed(2)} km²`
-  }, [points, tool])
-
-  const island = mode === 'status'
-  const region = nearestRegion(...Object.values(toBase(visibleCenter, view)))
-  const seg = SEGMENTS.find((s) => s.code === segCode)
-  const selectedVehicle = selected != null ? VEHICLES[selected] : null
-  const selectedMap = selectedVehicle?.mapId ? MAP_VEHICLES.find((m) => m.id === selectedVehicle.mapId) : null
-
-  // UC-GIS-005: 차량 선택 시 위치·궤적을 지도에 표출
+  // UC-GIS-005: 차량 선택 시 위치·궤적 표출
   const selectVehicle = (idx) => {
     setSelected(idx)
-    const m = MAP_VEHICLES.find((x) => x.id === VEHICLES[idx]?.mapId)
-    if (m && mode === 'status') centerOn(m, Math.max(view.z, 1))
+    const g = VEHICLES_GEO.find((x) => x.id === VEHICLES[idx]?.mapId)
+    if (g && mode === 'status') flyTo(g.at, Math.max(mapRef.current?.getView().getZoom() ?? 11, 11.5))
   }
   const selectMapVehicle = (mapId) => {
     const idx = VEHICLES.findIndex((v) => v.mapId === mapId)
@@ -161,115 +213,103 @@ export default function Dashboard() {
     selectVehicle(idx)
   }
 
+  const island = mode === 'status'
   const showLayer = (l) => layers.has(l)
   const filteredBase = BASE_LAYERS.filter((l) => l.includes(layerQuery.trim()))
   const filteredSection = SECTION_LAYERS.filter((l) => l.includes(layerQuery.trim()))
   const legend = LEGENDS[mode]
-  const segScreen = seg && toScreen(seg, view)
-  const labelScreen = selectedMap && toScreen(selectedMap, view)
-  const measureLast = points.length ? toScreen(points[points.length - 1], view) : null
+  const seg = SEGMENTS.find((s) => s.code === segCode)
+  const vehiclesShown = island ? VEHICLES_GEO : VEHICLES_GEO.filter((v) => v.road === DETAIL_ROUTE)
+  const zoomLevel = mapRef.current?.getView().getZoom() ?? 10.3
+  void tick // 지도 이동 시 다시 그리기
+
+  const px = (lonlat) => pixelOf(lonlat) ?? [-999, -999]
+  const segPx = seg && px(segGeo(seg))
+  const selGeo = VEHICLES_GEO.find((v) => v.id === selectedMapId)
+  const selPx = selGeo && px(selGeo.at)
+  const routeMid = (r) => r.coords[Math.floor(r.coords.length / 2)]
 
   return (
     <div className={`dash${panelOpen ? '' : ' panel-closed'}${tool ? ' measuring' : ''}`}>
-      {/* ── 지도 ─────────────────────────────────── */}
-      <div ref={mapRef} className="map" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => (drag.current = null)}>
-        <div className="map__world" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})` }}>
-          {island ? (
-            <>
-              <img className={`map__base map__base--island${basemap === 'satellite' ? ' satellite' : ''}`} src={A.mapIsland} alt="제주도 지도" draggable={false} />
-              {showLayer('연속지적도') && <div className="cadastral" />}
-              {showLayer('주요 교통량 축') &&
-                ROUTE_LABELS.filter((r) => r.traffic).map((r) => (
-                  <span key={`t-${r.name}`} className="route-tag traffic" style={{ left: r.x, top: r.y + 20 }}>교통량 축</span>
-                ))}
-              {showLayer('제설 우선노선') &&
-                ROUTE_LABELS.filter((r) => r.priority).map((r) => (
-                  <span key={`p-${r.name}`} className="route-tag priority" style={{ left: r.x, top: r.y }}>우선 · {r.name}</span>
-                ))}
-              {tab === 'vehicles' &&
-                TRAILS.map((t) => {
-                  const on = selectedMap?.id === t.id
-                  return (
-                    <img key={t.id} className={`map__abs trail${selectedMap ? (on ? ' on' : ' dim') : ''}`} src={TRAIL_ICONS[t.id]} alt="" style={{ left: t.x, top: t.y, width: t.w, height: t.h }} />
-                  )
-                })}
-              {showLayer('적설 감시 CCTV') &&
-                CCTV.map((c) => (
-                  <button key={c.id} className="cctv" style={{ left: c.x, top: c.y }} onClick={() => setToast(`적설 감시 CCTV #${c.id} 영상 연결 (목업)`)} title={`적설 감시 CCTV #${c.id}`}>
-                    <img src={A.icCctv} alt="" />
-                  </button>
-                ))}
-              {SEGMENTS.map((s) => (
-                <button
-                  key={s.code}
-                  className={`seg-dot${segCode === s.code && tab === 'dashboard' ? ' on' : ''}`}
-                  style={{ left: s.x, top: s.y, '--c': STATE_COLOR[s.state] }}
-                  onClick={() => { setSegCode(s.code); setTab('dashboard') }}
-                  title={`${segName(s)} · ${s.state}`}
-                  aria-label={segName(s)}
-                >
-                  {showLayer('재결빙 위험 구간') && s.refreeze && <i className="mk refreeze" />}
-                  {showLayer('블랙아이스 및 위험구간') && s.blackice && <em className="mk-tag ice">블랙아이스</em>}
-                  {showLayer('상습 결빙/파손 구간') && s.habitual && <em className="mk-tag habitual">상습</em>}
-                </button>
-              ))}
-              {selectedMap && <span className="veh-ring" style={{ left: selectedMap.x, top: selectedMap.y }} />}
-              {MAP_VEHICLES.map((m) => (
-                <button key={m.id} className="veh" style={{ left: m.x, top: m.y, transform: `translate(-50%, -50%) rotate(${m.rot}deg)` }} onClick={() => selectMapVehicle(m.id)} title={`${m.id}호 · ${m.type} · ${m.road}`}>
-                  <img src={VEHICLE_ICONS[m.id]} alt="" draggable={false} />
-                </button>
-              ))}
-              {showLayer('기상정보') &&
-                WEATHER.map((w) => (
-                  <span key={w.name} className="wx" style={{ left: w.x, top: w.y }}>
-                    <img src={w.icon} alt="" />
-                    <span>{w.name}</span>
-                    <b className={w.temp < 0 ? 'cold' : ''}>{w.temp.toFixed(1)}°</b>
-                  </span>
-                ))}
-            </>
-          ) : (
-            <>
-              <img className="map__base map__base--zoom" src={A.mapZoom} alt="1100도로 확대 지도" draggable={false} />
-              {mode === 'count' ? (
-                <>
-                  <img className="map__abs" src={A.routeWorkCount} alt="" style={{ left: 420.79, top: 38.8, width: 193.08, height: 848.52 }} />
-                  <img className="map__abs" src={A.vehZoomType01} alt="" style={{ left: 433, top: 553, width: 44, height: 28 }} />
-                  <ZoomVehicle src={A.vehZoom3} x={559.96} y={423.34} w={84.96} h={54.07} rot={138.57} />
-                </>
-              ) : (
-                <>
-                  <img className="map__abs" src={A.routeSurface} alt="" style={{ left: 411.92, top: 33.8, width: 193.08, height: 848.52 }} />
-                  {COUNT_LABELS.map((l, i) => (
-                    <span key={i} className="count-label" style={{ left: l.x, top: l.y, color: COUNT_COLORS[l.n], borderColor: COUNT_COLORS[l.n] }} title={`${l.place} · 제설 ${l.n}회 · 최근 ${l.at} · 노면 ${SURFACE_AT[i]}`}>
-                      {l.n}회
-                    </span>
-                  ))}
-                  <ZoomVehicle src={A.vehZoom1} x={569.48} y={148.6} w={70.48} h={44.85} rot={92} />
-                  <ZoomVehicle src={A.vehZoom9} x={513.42} y={468.98} w={70.48} h={44.85} rot={-76} />
-                </>
-              )}
-            </>
-          )}
-        </div>
-        {/* 거리·면적 재기 */}
-        {points.length > 0 && (
-          <svg className="measure" width="100%" height="100%">
-            {tool === 'area' && points.length > 2 ? (
-              <polygon points={points.map((p) => { const s = toScreen(p, view); return `${s.x},${s.y}` }).join(' ')} />
-            ) : (
-              <polyline points={points.map((p) => { const s = toScreen(p, view); return `${s.x},${s.y}` }).join(' ')} />
-            )}
-            {points.map((p, i) => { const s = toScreen(p, view); return <circle key={i} cx={s.x} cy={s.y} r="4" /> })}
-          </svg>
+      {/* ── 지도 (OpenLayers) ───────────────────────── */}
+      <div ref={elRef} className={`olmap${basemap === 'satellite' && !HAS_VWORLD ? ' satellite-sim' : ''}`} />
+      <div className="map-overlays">
+        {island && showLayer('제설 우선노선') &&
+          ROUTES.filter((r) => r.priority).map((r) => { const p = px(routeMid(r)); return <span key={`p-${r.name}`} className="route-tag priority" style={{ left: p[0], top: p[1] - 14 }}>우선 · {r.name}</span> })}
+        {island && showLayer('주요 교통량 축') &&
+          ROUTES.filter((r) => r.traffic).map((r) => { const p = px(r.coords[1]); return <span key={`t-${r.name}`} className="route-tag traffic" style={{ left: p[0], top: p[1] + 14 }}>교통량 축</span> })}
+        {island && showLayer('적설 감시 CCTV') &&
+          CCTV_GEO.map((c) => { const p = px(c.at); return (
+            <button key={c.id} className="cctv" style={{ left: p[0] - 12, top: p[1] - 12 }} onClick={() => setToast(`적설 감시 CCTV #${c.id} 영상 연결 (목업)`)} title={`적설 감시 CCTV #${c.id}`}>
+              <img src={A.icCctv} alt="" />
+            </button>
+          ) })}
+        {SEGMENTS.filter((s) => island || s.code === 'K-12').map((s) => {
+          const p = px(segGeo(s))
+          return (
+            <button
+              key={s.code}
+              className={`seg-dot${segCode === s.code && tab === 'dashboard' ? ' on' : ''}`}
+              style={{ left: p[0], top: p[1], '--c': STATE_COLOR[s.state] }}
+              onClick={() => { setSegCode(s.code); setTab('dashboard') }}
+              title={`${segName(s)} · ${s.state}`}
+              aria-label={segName(s)}
+            >
+              {showLayer('재결빙 위험 구간') && s.refreeze && <i className="mk refreeze" />}
+              {showLayer('블랙아이스 및 위험구간') && s.blackice && <em className="mk-tag ice">블랙아이스</em>}
+              {showLayer('상습 결빙/파손 구간') && s.habitual && <em className="mk-tag habitual">상습</em>}
+            </button>
+          )
+        })}
+        {!island && detailRoute.coords.slice(0, -1).map((a, i) => {
+          const b = detailRoute.coords[i + 1]
+          const p = px([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])
+          const n = DETAIL_COUNTS[i]
+          const color = mode === 'count' ? COUNT_COLORS[n] : SURFACE_COLORS[DETAIL_SURFACE[i]]
+          return (
+            <span key={i} className="count-label" style={{ left: p[0] + 14, top: p[1] - 9, color, borderColor: color }} title={`${DETAIL_PLACES[i]} · 제설 ${n}회 · 노면 ${DETAIL_SURFACE[i]}`}>
+              {mode === 'count' ? (n ? `${n}회` : '미작업') : DETAIL_SURFACE[i]}
+            </span>
+          )
+        })}
+        {selPx && tab === 'vehicles' && island && <span className="veh-ring" style={{ left: selPx[0], top: selPx[1] }} />}
+        {vehiclesShown.map((v) => {
+          const t = vehicleTrack(v)
+          const p = px(v.at)
+          const a = px(t.from)
+          const b = px(t.to)
+          const rot = (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI
+          const scale = Math.min(1.4, Math.max(0.75, 0.75 + (zoomLevel - 10) * 0.12))
+          return (
+            <button key={v.id} className="veh" style={{ left: p[0], top: p[1], transform: `translate(-50%, -50%) rotate(${rot}deg) scale(${scale})` }} onClick={() => selectMapVehicle(v.id)} title={`${v.id}호 · ${v.type} · ${v.road}`}>
+              <img src={VEHICLE_ICONS[v.id]} alt="" draggable={false} />
+            </button>
+          )
+        })}
+        {selPx && tab === 'vehicles' && island && (
+          <span className="veh-label" style={{ left: selPx[0] + 20, top: selPx[1] - 11 }}>{selectedVehicle.type} ({selectedVehicle.name})</span>
         )}
-        {measure && measureLast && (
-          <span className="measure-label" style={{ left: measureLast.x + 10, top: measureLast.y - 28 }}>
-            {tool === 'distance' ? '총 거리' : '면적'} {measure}
-            <button onClick={() => { setPoints([]); setTool(null) }} aria-label="측정 종료">×</button>
+        {island && showLayer('기상정보') &&
+          WEATHER_GEO.map((w) => { const p = px(w.at); return (
+            <span key={w.name} className="wx" style={{ left: p[0], top: p[1], transform: 'translate(-50%, -50%)' }}>
+              <img src={w.icon} alt="" />
+              <span>{w.name}</span>
+              <b className={w.temp < 0 ? 'cold' : ''}>{w.temp.toFixed(1)}°</b>
+            </span>
+          ) })}
+        {measure && (() => { const p = px(measure.at); return (
+          <span className="measure-label" style={{ left: p[0] + 10, top: p[1] - 30 }}>
+            {measure.text}
+            <button onClick={stopMeasure} aria-label="측정 종료">×</button>
           </span>
-        )}
+        ) })()}
       </div>
+
+      {!HAS_VWORLD && (
+        <div className="basemap-note" title="VITE_VWORLD_KEY 환경변수에 브이월드 인증키를 넣고 다시 빌드하면 K-Geo플랫폼(브이월드) 배경지도·연속지적도로 전환됩니다.">
+          임시 배경지도(OpenStreetMap) · 브이월드 인증키 설정 시 K-Geo플랫폼 지도로 전환
+        </div>
+      )}
 
       {/* ── 지도 위 고정 UI ───────────────────────── */}
       <section className={`layer-panel${layerOpen ? '' : ' closed'}`}>
@@ -291,6 +331,7 @@ export default function Dashboard() {
                   <button key={l} onClick={() => toggleLayer(l)} aria-pressed={layers.has(l)}>
                     <Checkbox checked={layers.has(l)} />
                     {l}
+                    {l === '연속지적도' && <small className="layer-hint">{HAS_VWORLD ? '확대 시 표출' : '인증키 필요'}</small>}
                   </button>
                 ))}
               </div>
@@ -321,7 +362,7 @@ export default function Dashboard() {
       </section>
 
       {island ? (
-        <div className="breadcrumb" style={{ left: visibleCenter.x }}>
+        <div className="breadcrumb" style={{ left: visibleCenterPx[0] }}>
           <img src={A.icPin} alt="" />
           <span>제주특별자치도</span>
           <img src={A.icChevronRight} alt="" />
@@ -330,7 +371,7 @@ export default function Dashboard() {
           <b>{region.name}</b>
         </div>
       ) : (
-        <div className="route-head" style={{ left: visibleCenter.x }}>
+        <div className="route-head" style={{ left: visibleCenterPx[0] }}>
           <b>1100도로 상세</b>
           <span>{mode === 'count' ? '구간별 제설 작업 횟수' : '노면 센서 기준 구간별 노면 상태'}</span>
           <button onClick={() => changeMode('status')}>전체 노선 보기</button>
@@ -338,21 +379,19 @@ export default function Dashboard() {
       )}
 
       <div className="map-tools">
-        {island && (
-          <div className="map-tools__base">
-            <button className={`thumb${basemap === 'normal' ? ' on' : ''}`} onClick={() => setBasemap('normal')}>
-              <img src={A.thumbMap} alt="" />
-              <span>일반지도</span>
-            </button>
-            <button className={`thumb${basemap === 'satellite' ? ' on' : ''}`} onClick={() => { setBasemap('satellite'); setToast('목업에서는 위성지도를 음영 처리로 대신 표시합니다.') }}>
-              <img src={A.thumbSatellite} alt="" />
-              <span>위성지도</span>
-            </button>
-          </div>
-        )}
+        <div className="map-tools__base">
+          <button className={`thumb${basemap === 'normal' ? ' on' : ''}`} onClick={() => setBasemap('normal')}>
+            <img src={A.thumbMap} alt="" />
+            <span>일반지도</span>
+          </button>
+          <button className={`thumb${basemap === 'satellite' ? ' on' : ''}`} onClick={() => { setBasemap('satellite'); if (!HAS_VWORLD) setToast('위성지도는 브이월드 인증키 설정 후 제공됩니다. (임시: 음영 처리)') }}>
+            <img src={A.thumbSatellite} alt="" />
+            <span>위성지도</span>
+          </button>
+        </div>
         <div className="map-tools__group">
-          <ToolButton icon={A.icZoomIn} tip="확대" onClick={() => zoom(0.2)} />
-          <ToolButton icon={A.icZoomOut} tip="축소" onClick={() => zoom(-0.2)} />
+          <ToolButton icon={A.icZoomIn} tip="확대" onClick={() => zoom(1)} />
+          <ToolButton icon={A.icZoomOut} tip="축소" onClick={() => zoom(-1)} />
         </div>
         <div className="map-tools__group">
           <ToolButton icon={A.icDistance} tip="거리재기" on={tool === 'distance'} onClick={() => startTool('distance')} />
@@ -361,8 +400,8 @@ export default function Dashboard() {
       </div>
 
       {/* 구간 정보 말풍선 (UC-GIS-009 기본 흐름 3) */}
-      {island && seg && tab === 'dashboard' && (
-        <div className="seg-pop" style={{ left: segScreen.x, top: segScreen.y }}>
+      {seg && segPx && tab === 'dashboard' && (island || seg.code === 'K-12') && (
+        <div className="seg-pop" style={{ left: segPx[0], top: segPx[1] }}>
           <span className="seg-pop__icon">
             <img src={A.icObserve} alt="" />
           </span>
@@ -375,7 +414,7 @@ export default function Dashboard() {
             <dd><b style={{ color: RISK_COLOR[seg.risk] }}>{seg.risk}</b>{seg.refreeze && <em className="seg-pop__warn">재결빙 경고</em>}</dd>
           </dl>
           <button className="seg-pop__close" onClick={() => setSegCode(null)} aria-label="닫기">×</button>
-          {seg.road === '1100도로' && (
+          {seg.road === '1100도로' && island && (
             <div className="seg-pop__links">
               <button onClick={() => changeMode('count')}>작업 횟수 보기</button>
               <button onClick={() => changeMode('surface')}>노면 상태 보기</button>
@@ -384,11 +423,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {island && labelScreen && tab === 'vehicles' && (
-        <span className="veh-label" style={{ left: labelScreen.x + 18 * view.z, top: labelScreen.y - 11 }}>
-          {selectedVehicle.type} ({selectedVehicle.name})
-        </span>
-      )}
       {island && selectedVehicle && tab === 'vehicles' && <VehiclePopup key={selected} vehicle={selectedVehicle} onClose={() => setSelected(null)} />}
 
       <div className={`legend${legendOpen ? '' : ' closed'}`}>
@@ -432,7 +466,7 @@ export default function Dashboard() {
                 const s = SEGMENTS.find((x) => x.code === code)
                 setMode('status')
                 setSegCode(code)
-                centerOn(s, 1.3)
+                flyTo(segGeo(s), 12.5)
               }}
             />
           ) : (
@@ -444,6 +478,34 @@ export default function Dashboard() {
   )
 }
 
+// 노선 스타일 — 제설 작업 상태 / 작업 횟수 / 노면 상태
+function routeStyle(f, { mode }) {
+  const route = f.get('route')
+  const i = f.get('idx')
+  if (mode === 'status') {
+    return [
+      new Style({ stroke: new Stroke({ color: 'rgba(255,255,255,0.9)', width: 8 }) }),
+      new Style({ stroke: new Stroke({ color: STATE_LINE[f.get('state')], width: 5, lineCap: 'round' }) }),
+    ]
+  }
+  if (route !== DETAIL_ROUTE) return new Style({ stroke: new Stroke({ color: 'rgba(100,116,139,0.35)', width: 4 }) })
+  const color = mode === 'count' ? COUNT_COLORS[DETAIL_COUNTS[i]] : SURFACE_COLORS[DETAIL_SURFACE[i]]
+  return [
+    new Style({ stroke: new Stroke({ color: '#fff', width: 13 }) }),
+    new Style({ stroke: new Stroke({ color, width: 8, lineCap: 'round' }) }),
+  ]
+}
+
+// 차량 진행 궤적 — 선택 차량 강조 (UI-SIRS-001-04)
+function trailStyle(f, { selectedMapId }) {
+  const on = f.get('vehicle') === selectedMapId
+  if (selectedMapId && !on) return new Style({ stroke: new Stroke({ color: 'rgba(55,65,81,0.25)', width: 3, lineDash: [4, 6] }) })
+  return new Style({ stroke: new Stroke({ color: on ? '#37348f' : 'rgba(55,65,81,0.75)', width: on ? 5 : 3.5, lineDash: on ? undefined : [6, 6], lineCap: 'round' }) })
+}
+
+const fmtLength = (m) => (m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`)
+const fmtArea = (m2) => (m2 >= 1e6 ? `${(m2 / 1e6).toFixed(2)} km²` : `${Math.round(m2).toLocaleString()} m²`)
+
 function ToolButton({ icon, tip, onClick, on }) {
   return (
     <button className={`tool${on ? ' on' : ''}`} onClick={onClick} aria-label={tip} aria-pressed={on}>
@@ -454,8 +516,4 @@ function ToolButton({ icon, tip, onClick, on }) {
       </span>
     </button>
   )
-}
-
-function ZoomVehicle({ src, x, y, w, h, rot }) {
-  return <img className="map__abs" src={src} alt="" style={{ left: x - w / 2, top: y - h / 2, width: w, height: h, transform: `rotate(${rot}deg)` }} />
 }

@@ -299,3 +299,21 @@
 .device-alert.on { outline: 2px solid #d92338; }
 .recent button { flex: 1; text-align: left; color: #555; font-size: 12px; }
 .recent button:hover { color: #37348f; text-decoration: underline; }
+
+/* ── OpenLayers 지도 (K-Geo플랫폼/브이월드 배경지도) ───────── */
+.olmap { position: absolute; inset: 0; background: #aad3df; }
+.olmap.satellite-sim .ol-layer canvas { filter: saturate(.55) brightness(.72) contrast(1.15) hue-rotate(-10deg); }
+.measuring .olmap { cursor: crosshair; }
+.map-overlays { position: absolute; inset: 0; pointer-events: none; overflow: clip; }
+.map-overlays > * { pointer-events: auto; }
+.map-overlays > .wx, .map-overlays > .route-tag, .map-overlays > .veh-ring, .map-overlays > .count-label { pointer-events: none; }
+.map-overlays .count-label { white-space: nowrap; }
+.olmap .ol-attribution { left: 12px; right: auto; bottom: 8px; border-radius: 4px; background: rgba(255,255,255,.85); font-size: 10px; max-width: 520px; }
+.olmap .ol-attribution button { display: none; }
+.olmap .ol-attribution ul { padding: 2px 6px; color: #555; }
+.olmap .ol-scale-line { left: 12px; bottom: 34px; background: rgba(17,16,56,.65); }
+.basemap-note {
+  position: absolute; left: 12px; bottom: 62px; z-index: 4; background: #fff4d9; color: #8a5300; border: 1px solid #f5c26b;
+  font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: 4px; cursor: help;
+}
+.layer-hint { margin-left: auto; font-size: 10px; color: #999; }

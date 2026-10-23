@@ -25,10 +25,12 @@ export const INCOMING = [
   { type: '미조치', title: '장기 미조치 3시간 경과', desc: '번영로 · 대천 (B-4) · 제설 미작업', seg: 'B-4' },
 ]
 
-export const alertStore = createStore('jeju-snow.alerts.v2', INITIAL)
+export const alertStore = createStore('jeju-snow.alerts.v3', INITIAL)
 
 export function pushIncoming(i) {
   const src = INCOMING[i % INCOMING.length]
   const time = new Date().toTimeString().slice(0, 5)
-  alertStore.set((list) => [{ ...src, id: Date.now(), time, unread: true, fresh: true }, ...list])
+  alertStore.set((list) =>
+    list.some((a) => a.title === src.title && a.desc === src.desc) ? list : [{ ...src, id: Date.now(), time, unread: true, fresh: true }, ...list],
+  )
 }

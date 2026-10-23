@@ -88,3 +88,17 @@
 .fcard:not(.on) { opacity: .92; }
 .fusion.has-sel .fcard:not(.on) { opacity: .55; }
 .fusion.has-sel .fcard:not(.on):hover { opacity: 1; }
+
+/* ── 교차 분석 지도 (OpenLayers) ─────────────── */
+.fusion__ol { position: absolute; inset: 0; min-height: 915px; background: #aad3df; }
+.fusion__ol .ol-attribution { left: 18px; right: auto; bottom: auto; top: 652px; background: rgba(255,255,255,.85); border-radius: 4px; font-size: 10px; }
+.fusion__ol .ol-attribution button { display: none; }
+.fusion__ol .ol-scale-line { left: auto; right: 330px; bottom: auto; top: 655px; background: rgba(17,16,56,.65); }
+.fusion__overlays { position: absolute; inset: 0; pointer-events: none; overflow: clip; }
+.fusion__overlays > button { pointer-events: auto; }
+.fusion__links { position: absolute; inset: 0; }
+.fusion__links line { stroke: #8e9098; stroke-width: 1; stroke-dasharray: 3 3; }
+.fusion__links line.on { stroke: #37348f; stroke-width: 1.5; }
+.fusion__veh { position: absolute; width: 44px; height: 28px; max-width: none; }
+.fusion__halo { position: absolute; width: 36px; height: 36px; animation: halo 1.6s ease-in-out infinite; }
+.fusion__note { left: 18px; bottom: auto; top: 622px; }

@@ -1,33 +1,43 @@
-import { useState } from 'react'
-import { A } from '../assets.js'
+import { useEffect, useState } from 'react'
+import Feature from 'ol/Feature.js'
+import LineString from 'ol/geom/LineString.js'
+import VectorLayer from 'ol/layer/Vector.js'
+import VectorSource from 'ol/source/Vector.js'
+import { boundingExtent } from 'ol/extent.js'
+import { Stroke, Style } from 'ol/style.js'
+import { A, VEHICLE_ICONS } from '../assets.js'
+import { JEJU_CENTER, ROUTES, SEGMENTS_GEO, VEHICLES_GEO, vehicleTrack } from '../data/geo.js'
+import { HAS_VWORLD, createBaseLayers } from '../map/basemap.js'
+import { fromLonLat, useOlMap } from '../map/useOlMap.js'
 import './fusion.css'
 
-// UI-003 기상·제설 융합 분석 — 좌표는 Figma 프레임 기준에서 LNB(240)·타이틀(61)을 뺀 값
+// UI-SIRS-003 기상·제설 융합 분석 — 교차 분석 지도는 OpenLayers + K-Geo플랫폼(브이월드) 배경지도
+// card.dx/dy: 구간 마커 기준 상세 카드 위치(px)
 const ISSUE_BADGE = { '작업 누락': '#ffd2d5', '제설 취약': '#fff0bd' }
 const ROADS = [
   {
     id: 1, name: '1100도로 · 성판악', issue: '작업 누락', pending: '미조치 6h', hot: true,
-    pin: { x: 417, y: 368, size: 22, color: '#f93c65' }, card: { x: 190, y: 433, w: 232 },
+    seg: 'K-12', route: '1100도로', vehicle: 1, pin: { size: 22, color: '#f93c65' }, card: { dx: -250, dy: 50, w: 232 },
     wx: ['-4.1℃', '적설 3.2cm · 풍속 7m/s'], road: ['-3.8℃', '아이스', '#ef4444', '수막 0.4mm'], car: ['4호', '05:40 이후 미통과', '#f93c65'],
   },
   {
     id: 2, name: '비자림로 · 송당', issue: '제설 취약', pending: '미조치 5h', hot: true,
-    pin: { x: 707, y: 382, size: 18, color: '#f93c65' }, card: { x: 710, y: 455, w: 222 },
+    seg: 'V-2', route: '비자림로', vehicle: null, pin: { size: 18, color: '#f93c65' }, card: { dx: 24, dy: 50, w: 222 },
     wx: ['-3.0℃', '적설 2.1cm · 풍속 9m/s'], road: ['-2.4℃', '아이스', '#ef4444', '재결빙 진행'], car: ['—', '08:10 1회 살포 후 미재살포', '#f93c65'],
   },
   {
     id: 3, name: '5·16도로 · 교래', issue: '작업 누락', pending: '미조치 4h', hot: true,
-    pin: { x: 609, y: 314, size: 18, color: '#f93c65' }, card: { x: 482, y: 51, w: 222 },
+    seg: 'K-16-2', route: '5·16도로', vehicle: 7, pin: { size: 18, color: '#f93c65' }, card: { dx: -90, dy: -205, w: 222 },
     wx: ['-2.6℃', '적설 1.8cm · 풍속 5m/s'], road: ['-2.9℃', '적설', '#ec4899', '적설심 2.0cm'], car: ['1호', '진행 중 · 구간 미도달', '#f93c65'],
   },
   {
     id: 4, name: '번영로 · 대천', issue: '작업 누락', pending: '미조치 3h', hot: false,
-    pin: { x: 791, y: 309, size: 18, color: '#fcbe2d' }, card: { x: 712, y: 99, w: 222 },
+    seg: 'B-4', route: '번영로', vehicle: 4, pin: { size: 18, color: '#fcbe2d' }, card: { dx: 40, dy: -175, w: 222 },
     wx: ['-1.2℃', '강수 0.5mm · 습도 91%'], road: ['-0.4℃', '젖음', '#1d4ed8', '결빙 전이 주의'], car: ['7호', '10:30 인근 통과 · 미살포', '#999'],
   },
   {
     id: 5, name: '평화로 · 광령', issue: '제설 취약', pending: '미조치 2h', hot: false,
-    pin: { x: 371, y: 260, size: 18, color: '#fcbe2d' }, card: { x: 156, y: 129, w: 222 },
+    seg: 'P-2', route: '평화로', vehicle: null, pin: { size: 18, color: '#fcbe2d' }, card: { dx: -235, dy: -165, w: 222 },
     wx: ['-1.5℃', '습도 88% · 풍속 4m/s'], road: ['-1.2℃', '슬러시', '#f97316', '마찰 0.45'], car: ['—', '07:30 1회 살포', '#999'],
   },
 ]
@@ -53,36 +63,75 @@ export default function Fusion() {
   const selRoad = ROADS.find((r) => r.id === sel)
   const response = [...RESPONSE].sort((a, b) => (sort === 'asc' ? 1 : -1) * (a[1] + a[2] - (b[1] + b[2])))
   const avg = (k) => RESPONSE.reduce((s, r) => s + r[k], 0) / RESPONSE.length
+  // 교차 분석 지도 — 노선 라인(취약구간 노선 강조) · 차량 궤적(점선)
+  const { elRef, mapRef, tick, pixelOf } = useOlMap({
+    center: JEJU_CENTER,
+    zoom: 10,
+    layers: () => {
+      const base = createBaseLayers()
+      const src = new VectorSource()
+      ROUTES.forEach((route) => {
+        const hit = ROADS.find((r) => r.route === route.name)
+        const f = new Feature(new LineString(route.coords.map((c) => fromLonLat(c))))
+        f.setStyle(hit
+          ? [new Style({ stroke: new Stroke({ color: '#fff', width: 9 }) }), new Style({ stroke: new Stroke({ color: hit.hot ? '#f93c65' : '#fcbe2d', width: 5, lineCap: 'round' }) })]
+          : new Style({ stroke: new Stroke({ color: 'rgba(72,128,255,0.8)', width: 4, lineCap: 'round' }) }))
+        src.addFeature(f)
+      })
+      ROADS.filter((r) => r.vehicle).forEach((r) => {
+        const v = VEHICLES_GEO.find((x) => x.id === r.vehicle)
+        const f = new Feature(new LineString(vehicleTrack(v).trail.map((c) => fromLonLat(c))))
+        f.setStyle(new Style({ stroke: new Stroke({ color: '#262728', width: 2, lineDash: [5, 5] }) }))
+        src.addFeature(f)
+      })
+      return [...base.normal, new VectorLayer({ source: src })]
+    },
+  })
+  useEffect(() => {
+    // 지도 영역(오른쪽 분석 패널·아래 차트 제외)에 제주 전역 맞춤
+    const all = ROUTES.flatMap((r) => r.coords).concat([[126.18, 33.3], [126.93, 33.45]])
+    mapRef.current?.getView().fit(boundingExtent(all.map((c) => fromLonLat(c))), { padding: [70, 330, 250, 40] })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  void tick
+  const px = (r) => pixelOf(SEGMENTS_GEO[r.seg]) ?? [-999, -999]
   const weak = [...ROADS].sort((a, b) => parseInt(b.pending.replace(/\D/g, ''), 10) - parseInt(a.pending.replace(/\D/g, ''), 10))
 
   return (
     <div className={`fusion${sel ? " has-sel" : ""}`}>
-      <img className="fusion__map" src={A.mapFusion} alt="제주도 지도" />
-      <img className="fusion__abs" src={A.fusionL4} alt="" style={{ left: 203, top: 41, width: 680, height: 650 }} />
-      <img className="fusion__abs" src={A.fusionL2} alt="" style={{ left: 224, top: 41, width: 638, height: 650 }} />
-      <img className="fusion__abs" src={A.fusionLinks} alt="" style={{ left: -240, top: -61, width: 1486, height: 1082 }} />
-
-      {selRoad && (
-        <img
-          className="fusion__abs fusion__halo"
-          src={A.fusionHalo}
-          alt=""
-          style={{ left: selRoad.pin.x + selRoad.pin.size / 2 - 18, top: selRoad.pin.y + selRoad.pin.size / 2 - 18, width: 36, height: 36 }}
-        />
-      )}
+      <div ref={elRef} className="fusion__ol" />
+      <div className="fusion__overlays">
+        <svg className="fusion__links" width="100%" height="100%">
+          {ROADS.map((r) => {
+            const p = px(r)
+            return <line key={r.id} x1={p[0]} y1={p[1]} x2={p[0] + r.card.dx + r.card.w / 2} y2={p[1] + r.card.dy + (r.card.dy < 0 ? 96 : 0)} className={sel === r.id ? 'on' : ''} />
+          })}
+        </svg>
+        {ROADS.filter((r) => r.vehicle).map((r) => {
+          const v = VEHICLES_GEO.find((x) => x.id === r.vehicle)
+          const t = vehicleTrack(v)
+          const p = pixelOf(v.at) ?? [-99, -99]
+          const a = pixelOf(t.from) ?? [0, 0]
+          const b = pixelOf(t.to) ?? [1, 0]
+          return <img key={r.id} className="fusion__veh" src={VEHICLE_ICONS[v.id]} alt="" style={{ left: p[0], top: p[1], transform: `translate(-50%, -50%) rotate(${(Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI}deg)` }} />
+        })}
+        {selRoad && <img className="fusion__halo" src={A.fusionHalo} alt="" style={{ left: px(selRoad)[0] - 18, top: px(selRoad)[1] - 18 }} />}
+        {ROADS.map((r) => {
+          const p = px(r)
+          return (
+            <button
+              key={r.id}
+              className="fpin"
+              style={{ left: p[0] - r.pin.size / 2, top: p[1] - r.pin.size / 2, width: r.pin.size, height: r.pin.size, background: r.pin.color, fontSize: r.pin.size > 20 ? 11 : 9.5 }}
+              onClick={() => setSel((cur) => (cur === r.id ? null : r.id))}
+              aria-label={r.name}
+            >
+              {r.id}
+            </button>
+          )
+        })}
       {ROADS.map((r) => (
-        <button
-          key={r.id}
-          className="fpin"
-          style={{ left: r.pin.x, top: r.pin.y, width: r.pin.size, height: r.pin.size, background: r.pin.color, fontSize: r.pin.size > 20 ? 11 : 9.5 }}
-          onClick={() => setSel((cur) => (cur === r.id ? null : r.id))}
-          aria-label={r.name}
-        >
-          {r.id}
-        </button>
-      ))}
-      {ROADS.map((r) => (
-        <button key={r.id} className={`fcard${sel === r.id ? ' on' : ''}`} style={{ left: r.card.x, top: r.card.y, width: sel === r.id ? 232 : r.card.w }} onClick={() => setSel((cur) => (cur === r.id ? null : r.id))}>
+        <button key={r.id} className={`fcard${sel === r.id ? ' on' : ''}`} style={{ left: px(r)[0] + r.card.dx, top: px(r)[1] + r.card.dy, width: sel === r.id ? 232 : r.card.w }} onClick={() => setSel((cur) => (cur === r.id ? null : r.id))}>
           <span className="fcard__head">
             <i style={{ background: r.hot ? '#f93c65' : '#fcbe2d' }}>{r.id}</i>
             <b>{r.name}</b>
@@ -96,6 +145,9 @@ export default function Fusion() {
           <span className="fcard__line"><small>차량</small><b>{r.car[0]}</b><span style={{ color: r.car[2], fontWeight: r.car[2] === '#999' ? 400 : 500 }}>{r.car[1]}</span></span>
         </button>
       ))}
+
+      </div>
+      {!HAS_VWORLD && <div className="basemap-note fusion__note">임시 배경지도(OpenStreetMap) · 브이월드 인증키 설정 시 K-Geo플랫폼 지도로 전환</div>}
 
       {/* ① 기상조건 융합 분석 */}
       <section className="fpanel fpanel--bottom">

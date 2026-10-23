@@ -1,54 +1,5 @@
 // UI-001 통합 관제 대시보드 목업 데이터
-// 지도 좌표는 Figma 프레임(1486×980) 기준 좌표에서 LNB(240)·타이틀(61)을 뺀 "콘텐츠 영역" 좌표다.
 import { A } from '../assets.js'
-
-const vx = (left, w) => 142 + left + w / 2
-const vy = (top, h) => 272 + top + h / 2
-
-// 지도 위 제설 차량 (UI-001-01 · 제설 차량 드론뷰)
-export const MAP_VEHICLES = [
-  { id: 1, type: '유니목', road: '1100도로', x: vx(414.15, 29.52), y: vy(38.52, 44.95), rot: 92 },
-  { id: 2, type: '유니목', road: '5·16도로', x: vx(468, 51.82), y: vy(-16, 49.45), rot: 38.99 },
-  { id: 3, type: '임차', road: '평화로', x: vx(313, 39.65), y: vy(80, 50.27), rot: 107.01 },
-  { id: 4, type: '덤프', road: '번영로', x: vx(614.04, 51.92), y: vy(0.54, 44.92), rot: 27 },
-  { id: 5, type: '임차', road: '번영로', x: vx(877.76, 50.49), y: vy(145.36, 51.28), rot: 47 },
-  { id: 6, type: '다목적', road: '산록도로', x: vx(382, 46.69), y: vy(121, 32.45), rot: -6 },
-  { id: 7, type: '임차', road: '5·16도로', x: vx(188.48, 51.97), y: vy(94.49, 48.93), rot: 142.71 },
-  { id: 8, type: '덤프', road: '산록도로', x: vx(487, 48.7), y: vy(361, 52.02), rot: -53.43 },
-  { id: 9, type: '다목적', road: '1100도로', x: vx(99, 37.81), y: vy(254, 49.47), rot: -76 },
-  { id: 10, type: '임차', road: '평화로', x: vx(261, 44.92), y: vy(331, 51.92), rot: 117 },
-  { id: 11, type: '유니목', road: '5·16도로', x: vx(521, 43.1), y: vy(133, 51.48), rot: -113.26 },
-  { id: 12, type: '덤프', road: '번영로', x: vx(957.18, 39.64), y: vy(255.87, 50.26), rot: 73 },
-]
-
-// 차량 진행 궤적 (UI-001-06)
-export const TRAILS = [
-  { id: 1, x: 547.9, y: 327, w: 44, h: 93 },
-  { id: 2, x: 630, y: 275, w: 115, h: 55 },
-  { id: 3, x: 467.3, y: 371, w: 62, h: 54 },
-  { id: 4, x: 776, y: 289, w: 62, h: 68 },
-  { id: 6, x: 437.4, y: 403, w: 116, h: 31 },
-  { id: 7, x: 279.6, y: 385, w: 83, h: 96 },
-  { id: 8, x: 610.5, y: 653, w: 49, h: 86 },
-  { id: 9, x: 254, y: 461, w: 73, h: 96 },
-  { id: 10, x: 411.2, y: 532.3, w: 26, h: 103 },
-  { id: 11, x: 588.7, y: 367.6, w: 103, h: 70 },
-]
-
-export const CCTV = [[281, 0], [687, 163], [173, 158], [82, 320], [0, 243], [323, 418], [746, 348]].map(([x, y], i) => ({
-  id: i + 1, x: 141 + x, y: 322 + y,
-}))
-
-export const WEATHER = [
-  { name: '제주시', temp: 1.8, icon: A.wxCloud, x: 460, y: 0 },
-  { name: '애월', temp: -0.5, icon: A.wxSnow, x: 220, y: 110 },
-  { name: '조천', temp: 1.2, icon: A.wxSunCloud, x: 584, y: 44 },
-  { name: '한라산', temp: -4.6, icon: A.wxSnow, x: 400, y: 248 },
-  { name: '안덕', temp: 0.3, icon: A.wxRainSnow, x: 0, y: 398 },
-  { name: '대정', temp: 2.1, icon: A.wxSunCloud, x: 0, y: 538 },
-  { name: '서귀포', temp: 2.6, icon: A.wxCloud, x: 500, y: 516 },
-  { name: '남원', temp: 0.9, icon: A.wxRainSnow, x: 640, y: 368 },
-].map((w) => ({ ...w, x: 77 + w.x, y: 225 + w.y }))
 
 export const SNOW_STATUS_KEYS = [
   { key: '미작업', color: '#d92338' },

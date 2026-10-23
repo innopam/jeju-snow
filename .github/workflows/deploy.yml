@@ -27,6 +27,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # 브이월드(K-Geo플랫폼) 인증키 — 저장소 Settings › Secrets › Actions 의 VWORLD_KEY
+          VITE_VWORLD_KEY: ${{ secrets.VWORLD_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
