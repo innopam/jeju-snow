@@ -1,0 +1,47 @@
+/* UI-002 통계 */
+.stats { width: 1200px; margin: 17px 0 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+.card { position: relative; background: #fff; border: 1px solid var(--border-divider); border-radius: 4px; }
+.card h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.14px; line-height: 1.4; }
+.code { position: absolute; right: 15px; top: 13px; font-size: 10px; color: #b0b2b8; }
+.grid-2 { display: grid; grid-template-columns: 590px 590px; gap: 20px; }
+
+.filter { height: 76px; padding: 13px 15px 0; }
+.filter__row { display: flex; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field small { font-size: 10px; color: #999; }
+.filter__pair, .pills { display: flex; gap: 8px; align-items: center; height: 32px; }
+.filter__go { position: absolute; right: 15px; top: 31px; width: 96px; }
+
+.bars { height: 150px; overflow: hidden; }
+.bars h3 { position: absolute; left: 15px; top: 13px; }
+.bars__base { position: absolute; left: 15px; top: 119px; width: 558px; height: 1px; background: #eee; }
+.bars__item { position: absolute; top: 0; width: 36px; height: 150px; }
+.bars__item i { position: absolute; left: 0; bottom: 31px; width: 36px; border-radius: 2px; transition: filter .15s; }
+.bars__item:hover i { filter: brightness(.92); }
+.bars__item small { position: absolute; top: 123px; left: 50%; transform: translateX(-50%); width: 60px; text-align: center; font-size: 8px; color: #999; }
+
+.trend { padding: 14px 13px; display: flex; flex-direction: column; gap: 13px; }
+.trend__head { display: flex; justify-content: space-between; align-items: center; width: 1116px; }
+.legend-inline { display: flex; gap: 10px; }
+.legend-inline span { display: flex; align-items: center; gap: 5px; font-size: 10px; }
+.legend-inline i { width: 14px; height: 3px; border-radius: 2px; }
+.legend-inline--abs { position: absolute; left: 15px; top: 55px; gap: 34px; }
+.legend-inline--abs span { font-size: 9px; gap: 6px; }
+.legend-inline--abs i { width: 12px; }
+.trend__chart { position: relative; height: 178px; width: 1121px; }
+.hgrid { position: absolute; height: 1px; background: #eee; }
+.hgrid small { position: absolute; right: calc(100% + 6px); top: -6px; font-size: 8px; color: #b0b2b8; }
+.xlab { position: absolute; transform: translateX(-50%); font-size: 8px; color: #b0b2b8; white-space: nowrap; }
+
+.hourly, .grades { height: 290px; }
+.hourly h3, .grades h3 { position: absolute; left: 15px; top: 13px; }
+.sub { position: absolute; left: 15px; top: 34px; font-size: 11px; color: #999; }
+.note { position: absolute; left: 15px; top: 261px; font-size: 9px; color: #b0b2b8; }
+.hbar { position: absolute; width: 14px; border-radius: 2px; }
+.hbar:hover { filter: brightness(.9); }
+
+.grade-row { position: absolute; left: 15px; right: 30px; height: 18px; display: flex; align-items: center; }
+.grade-row__label { width: 68px; text-align: right; font-size: 10px; margin-right: 8px; }
+.grade-row__bar { display: flex; height: 18px; border-radius: 2px; overflow: hidden; }
+.grade-row__bar i { height: 18px; }
+.grade-row b { position: absolute; right: 13px; font-size: 10px; }

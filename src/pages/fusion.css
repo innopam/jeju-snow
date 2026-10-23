@@ -1,0 +1,87 @@
+/* UI-003 기상·제설 융합 분석 */
+.fusion { position: absolute; inset: 0; overflow: auto; background: #f4f4f5; }
+.fusion::after { content: ""; position: absolute; left: 0; top: 0; width: 1px; height: 915px; }
+.fusion__map { position: absolute; left: -357.6px; top: -176px; width: 1820px; height: 1231.9px; max-width: none; }
+.fusion__abs { position: absolute; max-width: none; pointer-events: none; }
+.fusion__halo { animation: halo 1.6s ease-in-out infinite; }
+
+.fpin {
+  position: absolute; border: 2px solid #fff; border-radius: 50%; color: #fff; font-weight: 700; display: grid; place-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12); z-index: 2; line-height: 1;
+}
+.fcard {
+  position: absolute; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 8px 10px; background: #fff;
+  border: 1px solid #eee; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.12); text-align: left; z-index: 3; transition: border-color .15s;
+}
+.fcard.on { border: 1.5px solid #37348f; z-index: 4; }
+.fcard:hover { border-color: #9b98dc; }
+.fcard hr { width: 100%; height: 1px; border: 0; background: #eee; margin: 0; }
+.fcard__head { display: flex; align-items: center; gap: 5px; width: 100%; }
+.fcard__head > i { width: 16px; height: 16px; border-radius: 8px; color: #fff; font-size: 9px; font-weight: 700; font-style: normal; display: grid; place-items: center; }
+.fcard__head > b { font-size: 10.5px; color: #222; white-space: nowrap; }
+.fcard__head .badge { height: 15px; padding: 0 4px; }
+.fcard__head strong { font-size: 9px; white-space: nowrap; }
+.fcard__line { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.fcard__line small { background: #f2f4f7; border-radius: 3px; padding: 1px 4px; font-size: 8px; font-weight: 500; color: #78787d; }
+.fcard__line b { font-size: 9.5px; color: #222; }
+.fcard__line b.tag { font-size: 9px; }
+.fcard__line span { font-size: 8.5px; color: #999; }
+
+.fpanel { position: absolute; background: #fff; border: 1px solid var(--border-divider); border-radius: 4px; }
+.fpanel h3 { margin: 0; font-size: 14px; font-weight: 700; color: #111; }
+.fpanel--bottom { left: 18px; top: 687px; width: 906px; height: 216px; z-index: 5; }
+.fpanel--bottom h3 { position: absolute; left: 16px; top: 16px; }
+.vbars { position: absolute; top: 46px; width: 426px; height: 152px; }
+.vbars > p { font-size: 12px; font-weight: 500; color: #222; line-height: 1; }
+.vbars__plot { position: absolute; left: 0; top: 18px; width: 426px; height: 114px; border-bottom: 1px solid #edeff3; }
+.vbars__item { position: absolute; bottom: 0; height: 114px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+.vbars__item small { font-size: 10px; color: #777; margin-bottom: 2px; }
+.vbars__item i { width: 100%; border-radius: 2px 2px 0 0; transition: filter .15s; }
+.vbars__item:hover i { filter: brightness(.9); }
+.vbars__item em { position: absolute; top: calc(100% + 6px); font-style: normal; font-size: 10px; color: #777; white-space: nowrap; }
+
+.fcol { position: absolute; left: 936px; top: 16px; width: 294px; display: flex; flex-direction: column; gap: 12px; z-index: 5; }
+.fpanel--rank { position: relative; height: 481px; }
+.rank__head { display: flex; justify-content: space-between; align-items: center; padding: 14px 10px 0 14px; }
+.rank__head h3 { font-size: 12px; color: #222; }
+.rank__head button { font-size: 9px; color: #2563eb; }
+.rank__sub { padding: 8px 8px 0; font-size: 9px; color: #999; white-space: nowrap; }
+.rank__legend { display: flex; gap: 10px; padding: 6px 8px 0; }
+.rank__legend span { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #999; white-space: nowrap; }
+.rank__legend i { width: 8px; height: 8px; border-radius: 2px; }
+.rank__legend i.goal { width: 1.5px; height: 10px; border-radius: 0; background: #ff4d55; }
+.rank__list { position: absolute; left: 8px; top: 71px; width: 276px; }
+.rank-row { display: flex; align-items: center; gap: 8px; height: 60px; padding: 0 10px; border-bottom: 1px solid #edeff3; background: #fff; position: relative; }
+.rank-row.top { background: #f1f4f9; }
+.rank-row.top::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #4880ff; }
+.rank-row > small { width: 11px; text-align: center; font-size: 9px; color: #b0b2b8; }
+.rank-row__info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.rank-row__info p { display: flex; align-items: center; gap: 6px; }
+.rank-row__info b { font-size: 11px; color: #222; }
+.rank-row__info .badge { height: 15px; padding: 0 6px; }
+.rank-row__info small { font-size: 9px; color: #999; }
+.rank-row__bar { position: relative; display: flex; width: 180px; height: 6px; border-radius: 3px; background: #f1f1f1; }
+.rank-row__bar i:first-child { border-radius: 3px 0 0 3px; }
+.rank-row__bar i:nth-child(2) { border-radius: 0 3px 3px 0; }
+.rank-row__bar i.goal { position: absolute; left: 135px; top: -2px; width: 1.5px; height: 10px; background: #ff4d55; }
+.rank-row__val { display: flex; align-items: baseline; gap: 2px; white-space: nowrap; }
+.rank-row__val b { font-size: 17px; }
+.rank-row__val small { font-size: 9px; }
+.rank__sum { position: absolute; left: 8px; top: 441px; width: 276px; display: flex; gap: 6px; background: #f2f4f7; border-radius: 4px; padding: 8px 10px; font-size: 9px; white-space: nowrap; }
+.rank__sum b { color: #222; }
+.rank__sum span { color: #999; }
+
+.fpanel--weak { position: relative; height: 394px; }
+.fpanel--weak h3 { padding: 14px 16px 0; height: 35px; border-bottom: 1px solid #f1f1f1; margin: 0 16px 0 0; padding-left: 16px; }
+.weak__title { padding: 12px 14px 0; font-size: 12px; font-weight: 700; color: #222; }
+.weak__rows { display: flex; flex-direction: column; height: 254px; margin: 12px 14px 0; }
+.weak-row { flex: 1; display: flex; align-items: center; gap: 16px; padding: 2px 8px; border-radius: 8px; text-align: left; border-bottom: 1px solid #f2f4f7; }
+.weak-row:last-child { border-bottom: 0; }
+.weak-row.on { background: #f4f5f7; }
+.weak-row:hover:not(.on) { background: #fafbfc; }
+.weak-row > small { font-size: 11px; color: #222; }
+.weak-row__main { width: 137px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.weak-row__main .badge { height: 15px; padding: 0 4px; }
+.weak-row__main b { font-size: 12px; color: #222; white-space: nowrap; }
+.weak-row strong { font-size: 17px; margin-left: auto; white-space: nowrap; }
+@keyframes halo { 50% { opacity: .55; } }

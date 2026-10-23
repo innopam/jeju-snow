@@ -1,0 +1,24 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="38" height="22" viewBox="0 0 38 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Control">
+<g clip-path="url(#clip0_0_504)">
+<path d="M0 11C0 4.92487 4.92487 0 11 0H27C33.0751 0 38 4.92487 38 11V11C38 17.0751 33.0751 22 27 22H11C4.92487 22 0 17.0751 0 11V11Z" fill="#3B82F6"/>
+<g id="Knob" filter="url(#filter0_d_0_504)">
+<circle cx="27" cy="11" r="9" fill="white"/>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_0_504" x="10" y="-4" width="34" height="34" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="2"/>
+<feGaussianBlur stdDeviation="4"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.0627451 0 0 0 0 0.0941176 0 0 0 0 0.156863 0 0 0 0.12 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_504"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_504" result="shape"/>
+</filter>
+<clipPath id="clip0_0_504">
+<path d="M0 11C0 4.92487 4.92487 0 11 0H27C33.0751 0 38 4.92487 38 11V11C38 17.0751 33.0751 22 27 22H11C4.92487 22 0 17.0751 0 11V11Z" fill="white"/>
+</clipPath>
+</defs>
+</svg>

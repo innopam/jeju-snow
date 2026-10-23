@@ -1,0 +1,42 @@
+/* UI-004 데이터 연계 모니터링 */
+.mon { padding: 24px; display: flex; flex-direction: column; gap: 16px; min-width: 1180px; }
+.mcard { background: #fff; border: 1px solid var(--border-divider); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.mcard__head { display: flex; align-items: center; gap: 10px; }
+.mcard__head h3 { margin: 0; font-size: 16px; font-weight: 700; color: #111; }
+.mcard__head small { font-size: 10px; color: #777; }
+.lbl { font-size: 13px; font-weight: 700; color: #111; white-space: nowrap; }
+.mcard .dropdown { height: 40px; }
+
+.mtable { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; color: #101828; }
+.mtable th { height: 56px; background: #f2f4f7; border-bottom: 1px solid #e4e7ec; font-weight: 700; text-align: left; padding: 0 12px; white-space: nowrap; }
+.mtable td:last-child { overflow: visible; }
+.mtable td { height: 52px; border-bottom: 1px solid #e4e7ec; padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mtable .c { text-align: center; }
+.mtable tr.hl td { background: #eff6ff; }
+.mtable tbody tr:hover td { background: #f8faff; }
+.mtable td.err { color: #ef3d45; }
+.mtable td.empty { color: #999; height: 80px; }
+.mtable .btn-outline-blue:disabled { opacity: .45; cursor: default; }
+.mbadge { height: 28px; padding: 0 12px; }
+
+.toggle { width: 38px; height: 22px; border-radius: 11px; background: #d0d5dd; position: relative; transition: background .15s; }
+.toggle::after { content: ''; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.toggle.on { background: none; }
+.toggle.on::after { display: none; }
+.toggle img { width: 38px; height: 22px; }
+
+.pager { display: flex; gap: 7px; justify-content: center; padding-top: 6px; }
+.pager button { width: 28px; height: 28px; border-radius: 4px; font-size: 12px; font-weight: 700; color: #111; }
+.pager button.on, .pager button:hover { background: #f2f4f7; }
+
+.mtabs { width: 208px; border-bottom: 0; }
+.mtabs button { flex: none; width: 104px; }
+.mcard > .mtabs { border-bottom: 1px solid #e4e7ec; width: 100%; }
+.mfilter { display: flex; align-items: center; gap: 12px; }
+.mfilter > span { color: #555; }
+.date-field { position: relative; display: flex; align-items: center; width: 128px; height: 40px; border: 1px solid #b8b8b8; border-radius: 5px; padding: 0 12px; background: #fff; }
+.date-field input { border: 0; outline: 0; width: 100%; font-size: 14px; background: none; }
+.date-field img { width: 20px; height: 20px; position: absolute; right: 10px; pointer-events: none; }
+.btn-search { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; background: #37348f; color: #fff; font-size: 14px; font-weight: 700; }
+.btn-search img { width: 16px; height: 16px; }
+.btn-reset { height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid #d0d5dd; background: #fff; font-size: 14px; font-weight: 700; color: #111; }

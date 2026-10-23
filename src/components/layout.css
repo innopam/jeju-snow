@@ -1,0 +1,39 @@
+/* 알림 드롭다운 · 위험 이벤트 (UI-001-05) */
+.alert-dd {
+  position: absolute; right: 0; top: 49px; width: 384px; background: #fff; border: 1px solid var(--border-default);
+  border-radius: 12px; overflow: hidden; z-index: 60; box-shadow: 0 8px 24px rgba(16, 24, 40, .12);
+}
+.alert-dd__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border-default); }
+.alert-dd__head p { font-size: 14px; font-weight: 700; color: #101828; }
+.alert-dd__head button { font-size: 10px; font-weight: 700; color: var(--link); }
+.alert-dd__chips { display: flex; gap: 6px; padding: 12px 16px; }
+.alert-dd__chips button {
+  padding: 6px 12px; border-radius: 13px; font-size: 10px; font-weight: 700; color: #555;
+  background: var(--bg-chip); border: 1px solid var(--border-default);
+}
+.alert-dd__chips button.on { background: var(--bg-brand); border-color: var(--bg-brand); color: #fff; }
+.alert-dd__list { max-height: 520px; overflow-y: auto; }
+.alert-row { width: 100%; display: flex; align-items: flex-start; text-align: left; position: relative; border-top: 1px solid var(--border-default); }
+.alert-row:hover { background: #fafbfc; }
+.alert-row > i { align-self: stretch; width: 3px; flex: none; }
+.alert-row__icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; margin: 14px 10px 14px 13px; }
+.alert-row__icon img { width: 18px; height: 18px; }
+.alert-row__text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 0; }
+.alert-row__text b { font-size: 12px; color: #101828; }
+.alert-row__text small { font-size: 10px; color: #555; }
+.alert-row__text em { font-style: normal; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
+.alert-row__right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding: 14px 16px 0 10px; }
+.alert-row__right small { font-size: 10px; color: #555; }
+.alert-row__right img { width: 7px; height: 7px; }
+
+/* 실시간 알림 배너 */
+.rt-banner {
+  position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 25;
+  display: flex; align-items: center; gap: 8px; padding: 14px 16px; background: #fff;
+  border: 1px solid var(--border-default); border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 24, 40, .08);
+  animation: rt-in .35s ease-out;
+}
+.rt-banner img { width: 14px; height: 14px; }
+.rt-banner b { font-size: 14px; color: #101828; }
+.rt-banner em { font-style: normal; font-size: 10px; font-weight: 700; color: var(--danger); background: #ffe7e8; padding: 3px 8px; border-radius: 10px; }
+@keyframes rt-in { from { opacity: 0; transform: translate(-50%, -8px); } }
