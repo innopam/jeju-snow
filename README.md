@@ -3,7 +3,8 @@
 Figma 시안(포트홀 flow · `448:1169`)을 기반으로 만든 **Vite + React 19 SPA 목업**입니다.
 백엔드 없이 모든 데이터는 `src/data/*.js`의 목업 데이터로 동작하며, GitHub Pages에 정적으로 배포됩니다.
 
-- 배포 주소: https://innopam.github.io/jeju-snow/
+- 배포 주소: https://jeju-snow.innopam.com/
+  (innopam 조직 Pages가 innopam.com에 연결돼 있어 프로젝트 사이트는 커스텀 서브도메인으로 운영)
 
 ## 화면 구성
 
@@ -18,14 +19,14 @@ Figma 시안(포트홀 flow · `448:1169`)을 기반으로 만든 **Vite + React
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173/jeju-snow/
+npm run dev      # http://localhost:5173/
 npm run build    # dist/ 생성 (SPA 라우팅용 404.html 포함)
 ```
 
 ## 기술 스택
 
-- React 19 · React Router 7 (`BrowserRouter`, `basename=/jeju-snow/`)
-- Vite 8 (`base: '/jeju-snow/'`)
+- React 19 · React Router 7 (`BrowserRouter`)
+- Vite 8 (`base: '/'`, `public/CNAME` = jeju-snow.innopam.com)
 - 순수 CSS (Figma 변수 기반 CSS 커스텀 프로퍼티), 외부 UI 라이브러리 없음
 - 지도는 Figma 시안의 정적 이미지 위에 차량·CCTV·기상 레이어를 오버레이 (드래그 이동, 확대/축소 지원)
 
