@@ -7,7 +7,7 @@ import { boundingExtent } from 'ol/extent.js'
 import { Stroke, Style } from 'ol/style.js'
 import { A, VEHICLE_ICONS } from '../assets.js'
 import { JEJU_CENTER, ROUTES, SEGMENTS_GEO, VEHICLES_GEO, vehicleTrack } from '../data/geo.js'
-import { HAS_VWORLD, createBaseLayers } from '../map/basemap.js'
+import { createBaseLayers } from '../map/basemap.js'
 import { fromLonLat, useOlMap } from '../map/useOlMap.js'
 import { BP, useMedia } from '../useMedia.js'
 import './fusion.css'
@@ -159,7 +159,6 @@ export default function Fusion() {
       ))}
 
       </div>
-      {!HAS_VWORLD && <div className="basemap-note fusion__note">임시 배경지도(OpenStreetMap) · 브이월드 인증키 설정 시 K-Geo플랫폼 지도로 전환</div>}
       </div>
 
       {/* ① 기상조건 융합 분석 */}

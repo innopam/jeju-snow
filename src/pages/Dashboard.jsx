@@ -314,11 +314,6 @@ export default function Dashboard() {
         ) })()}
       </div>
 
-      {!HAS_VWORLD && (
-        <div className="basemap-note" title="VITE_VWORLD_KEY 환경변수에 브이월드 인증키를 넣고 다시 빌드하면 K-Geo플랫폼(브이월드) 배경지도·연속지적도로 전환됩니다.">
-          임시 배경지도(OpenStreetMap) · 브이월드 인증키 설정 시 K-Geo플랫폼 지도로 전환
-        </div>
-      )}
 
       {/* ── 지도 위 고정 UI ───────────────────────── */}
       <section className={`layer-panel${layerOpen ? '' : ' closed'}`}>

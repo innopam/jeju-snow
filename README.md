@@ -43,7 +43,7 @@ Figma 시안(포트홀 flow · `448:1169`)을 기반으로 만든 **Vite + React
 | 타일 캐싱·프리페치 | OpenLayers 타일 캐시(`cacheSize`)·`preload` |
 
 - 인증키는 `VITE_VWORLD_KEY` 환경변수로 주입합니다. 로컬은 `.env.example`을 `.env.local`로 복사해 키를 넣고, 배포는 GitHub 저장소 Secret `VWORLD_KEY`에 등록합니다.
-- 키가 없으면 개발용 임시 배경지도(OpenStreetMap)로 표시되고, 화면 왼쪽 아래에 안내 문구가 나옵니다.
+- 키가 없으면 개발용 임시 배경지도(OpenStreetMap)로 표시됩니다.
 - 노선·구간·차량·CCTV 좌표(`src/data/geo.js`)는 목업용 근사치이며, 운영 시 스마트빌리지 인프라 연계 데이터로 교체합니다.
 
 ## 반응형 지원
