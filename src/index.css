@@ -37,7 +37,6 @@ body {
   color: var(--text-default);
   background: var(--bg-page);
   -webkit-font-smoothing: antialiased;
-  min-width: 1280px;
 }
 p { margin: 0; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -150,3 +149,27 @@ img { display: block; }
   position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%); background: #202224; color: #fff;
   padding: 10px 16px; border-radius: 8px; font-size: 13px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,.2);
 }
+
+/* ── 반응형 공통 ─────────────────────────────── */
+.topbar__menu { display: none; width: 36px; height: 36px; margin-left: -8px; margin-right: 4px; flex-direction: column; justify-content: center; align-items: center; gap: 4px; border-radius: 6px; }
+.topbar__menu span { width: 18px; height: 2px; background: var(--text-strong); border-radius: 1px; }
+.topbar h1 { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lnb-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 70; }
+
+@media (max-width: 1279px) {
+  .topbar { padding-left: 20px; }
+}
+@media (max-width: 767px) {
+  .app { min-height: 0; }
+  .lnb { position: fixed; left: 0; top: 0; bottom: 0; z-index: 80; transform: translateX(-100%); transition: transform .25s; width: 260px; }
+  .app.drawer-open .lnb { transform: none; }
+  .lnb__collapse img { transform: rotate(0deg) !important; }
+  .topbar { height: 52px; padding: 0 12px; }
+  .topbar__menu { display: flex; }
+  .topbar h1 { font-size: 17px; }
+  .topbar__name { display: none; }
+  .toast { left: 12px; right: 12px; transform: none; bottom: 16px; text-align: center; }
+}
+.lnb.collapsed { padding-left: 12px; padding-right: 12px; }
+.lnb.collapsed .lnb__brand img { width: 40px; height: 24px; object-position: left center; object-fit: cover; }
+.lnb.collapsed .lnb__item, .lnb.collapsed .lnb__sub { justify-content: center; padding-left: 0; padding-right: 0; }

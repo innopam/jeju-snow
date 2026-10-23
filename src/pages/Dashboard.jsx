@@ -21,6 +21,7 @@ import { fromLonLat, toLonLat, useOlMap } from '../map/useOlMap.js'
 import DashboardPanel from './dashboard/DashboardPanel.jsx'
 import VehiclePanel from './dashboard/VehiclePanel.jsx'
 import VehiclePopup from './dashboard/VehiclePopup.jsx'
+import { BP, useMedia } from '../useMedia.js'
 import './dashboard.css'
 
 // UI-SIRS-001-01 ~ 04 통합 관제 대시보드 — OpenLayers + K-Geo플랫폼(브이월드) 배경지도
@@ -37,7 +38,8 @@ const LEGENDS = {
   surface: { title: '도로상태', items: Object.entries(SURFACE_COLORS).map(([k, c]) => [c, k]) },
 }
 const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
-const PANEL_W = 380
+const PANEL_DESKTOP = 380
+const mq = (q) => typeof window !== 'undefined' && window.matchMedia(q).matches
 const segGeo = (s) => SEGMENTS_GEO[s.code]
 const detailRoute = ROUTES.find((r) => r.name === DETAIL_ROUTE)
 
@@ -45,14 +47,16 @@ export default function Dashboard() {
   const { setToast } = useOutletContext()
   const location = useLocation()
   const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선', '재결빙 위험 구간']))
-  const [layerOpen, setLayerOpen] = useState(true)
+  const isMobile = useMedia(BP.mobile)
+  const PANEL_W = isMobile ? 0 : PANEL_DESKTOP // 모바일은 하단 시트라 지도 가로를 가리지 않는다
+  const [layerOpen, setLayerOpen] = useState(() => !mq(BP.mobile))
   const [layerQuery, setLayerQuery] = useState('')
   const [mode, setMode] = useState('status')
   const [basemap, setBasemap] = useState('normal')
   const [tab, setTab] = useState('dashboard')
-  const [panelOpen, setPanelOpen] = useState(true)
-  const [legendOpen, setLegendOpen] = useState(true)
-  const [segCode, setSegCode] = useState('K-12')
+  const [panelOpen, setPanelOpen] = useState(() => !mq(BP.narrow))
+  const [legendOpen, setLegendOpen] = useState(() => !mq(BP.mobile))
+  const [segCode, setSegCode] = useState(() => (mq(BP.mobile) ? null : 'K-12'))
   const [selected, setSelected] = useState(null) // VEHICLES index
   const [tool, setTool] = useState(null) // 'distance' | 'area'
   const [measure, setMeasure] = useState(null) // { text, at }
@@ -119,14 +123,19 @@ export default function Dashboard() {
     view.animate({ center: [c[0] + (panelOpen ? (PANEL_W / 2) * res : 0), c[1]], zoom, duration: 450 })
   }
   const fitTo = (coords, duration = 450) => {
-    mapRef.current?.getView().fit(boundingExtent(coords.map((c) => fromLonLat(c))), { padding: [60, panelOpen ? PANEL_W + 60 : 80, 40, 245], duration, maxZoom: 13 })
+    mapRef.current?.getView().fit(boundingExtent(coords.map((c) => fromLonLat(c))), { padding: isMobile ? [70, 44, 70, 44] : [60, panelOpen ? PANEL_W + 60 : 80, 40, layerOpen ? 245 : 60], duration, maxZoom: 13 })
   }
   // 제주 전역 보기 — 처음 열 때와 '제설 작업 상태'로 돌아올 때
   const fitIsland = (duration) => fitTo([...ROUTES.flatMap((r) => r.coords), ...WEATHER_GEO.map((w) => w.at)], duration)
   useEffect(() => {
-    fitIsland(0)
+    // 레이아웃이 확정된 뒤 지도 크기를 다시 재고 맞춘다
+    const t = setTimeout(() => {
+      mapRef.current?.updateSize()
+      fitIsland(0)
+    }, 0)
+    return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isMobile])
 
   // 알림 선택 → 해당 구간으로 지도 이동 (UC-EVT-001 기본 흐름 4)
   const focus = location.state
@@ -209,7 +218,7 @@ export default function Dashboard() {
     const idx = VEHICLES.findIndex((v) => v.mapId === mapId)
     if (idx < 0) return setToast(`${mapId}호 차량은 단말 미등록 차량입니다 (목업).`)
     setTab('vehicles')
-    setPanelOpen(true)
+    if (!isMobile) setPanelOpen(true)
     selectVehicle(idx)
   }
 
@@ -445,8 +454,9 @@ export default function Dashboard() {
 
       {/* ── 우측 패널 ─────────────────────────────── */}
       <aside className="side-panel">
-        <button className="side-panel__fold" onClick={() => setPanelOpen((o) => !o)} aria-label={panelOpen ? '패널 접기' : '패널 펼치기'}>
+        <button className="side-panel__fold" onClick={() => setPanelOpen((o) => !o)} aria-label={panelOpen ? '패널 접기' : '패널 펼치기'} aria-expanded={panelOpen}>
           <img src={panelOpen ? A.icPanelLeft : A.icPanelRight} alt="" />
+          <span className="side-panel__fold-label">{panelOpen ? '현황 닫기' : tab === 'vehicles' ? '제설 차량 현황' : '종합 현황'}</span>
         </button>
         <div className="side-panel__inner">
           <div className="tabs-line" role="tablist">
@@ -464,13 +474,14 @@ export default function Dashboard() {
               region={region.name}
               onShowSegment={(code) => {
                 const s = SEGMENTS.find((x) => x.code === code)
+                if (isMobile) setPanelOpen(false)
                 setMode('status')
                 setSegCode(code)
                 flyTo(segGeo(s), 12.5)
               }}
             />
           ) : (
-            <VehiclePanel selected={selected} onSelect={selectVehicle} />
+            <VehiclePanel selected={selected} onSelect={(i) => { if (isMobile) setPanelOpen(false); selectVehicle(i) }} />
           )}
         </div>
       </aside>

@@ -317,3 +317,65 @@
   font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: 4px; cursor: help;
 }
 .layer-hint { margin-left: auto; font-size: 10px; color: #999; }
+
+/* ── 반응형 ─────────────────────────────────── */
+.side-panel__fold-label { display: none; }
+.side-panel { max-width: 100%; }
+
+/* 태블릿: 우측 패널은 지도 위에 겹쳐 열리고, 기본은 접힘 */
+@media (max-width: 1279px) {
+  .tool__tip { display: none; }
+  .map-tools { top: 13px; }
+  .breadcrumb { font-size: 13px; }
+  .layer-panel { width: 210px; }
+}
+
+/* 모바일: 우측 패널 → 하단 시트, 지도 컨트롤 축소 */
+@media (max-width: 767px) {
+  .dash { --panel-w: 0px; }
+  .layer-panel { left: 10px; top: 54px; width: calc(100vw - 20px); max-width: 300px; z-index: 6; }
+  .layer-panel__body { max-height: 46vh; overflow-y: auto; }
+  .layer-panel.closed { width: auto; }
+  .layer-panel.closed .layer-panel__title span { display: none; }
+  .breadcrumb { top: 10px; left: 50% !important; height: 32px; padding: 6px 10px; font-size: 12px; max-width: calc(100vw - 20px); }
+  .breadcrumb > img:first-child { display: none; }
+  .route-head { top: 10px; left: 50% !important; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 20px); white-space: normal; font-size: 12px; }
+  .route-head span { display: none; }
+  .map-tools, .panel-closed .map-tools { right: 10px; top: 54px; gap: 8px; }
+  .map-tools__base { flex-direction: column; gap: 4px; }
+  .thumb img { width: 48px; height: 22px; }
+  .thumb span { font-size: 10px; padding: 3px 2px; }
+  .tool { width: 34px; height: 34px; }
+  .legend, .panel-closed .legend { right: 10px; bottom: 64px; padding: 10px 12px; }
+  .legend.closed { width: auto; }
+  .legend.closed .legend__head { gap: 6px; }
+  .basemap-note { left: 10px; right: 10px; bottom: 64px; font-size: 10px; width: fit-content; max-width: calc(100vw - 150px); }
+  .olmap .ol-scale-line { bottom: 96px; }
+  .olmap .ol-attribution { bottom: 56px; max-width: calc(100vw - 20px); }
+
+  .side-panel, .panel-closed .side-panel {
+    left: 0; right: 0; top: auto; bottom: 0; width: 100%; height: min(70vh, 640px); transform: translateY(calc(100% - 48px));
+    transition: transform .3s ease; z-index: 20;
+  }
+  .dash:not(.panel-closed) .side-panel { transform: none; }
+  .side-panel__fold {
+    position: relative; left: 0; top: 0; width: 100%; height: 48px; border: 0; border-radius: 14px 14px 0 0; background: #fff;
+    box-shadow: 0 -4px 12px rgba(0,0,0,.1); display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .side-panel__fold::before { content: ''; position: absolute; top: 6px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: #d0d5dd; }
+  .side-panel__fold img { transform: rotate(90deg); }
+  .panel-closed .side-panel__fold img { transform: rotate(-90deg); }
+  .side-panel__fold-label { display: inline; font-size: 13px; font-weight: 700; color: var(--text-strong); }
+  .side-panel__inner { height: calc(100% - 48px); border-left: 0; box-shadow: none; padding: 4px 16px 16px; }
+  .vlist { min-height: 0; max-height: none; }
+  .vp__list-sec { min-height: 320px; }
+  .type-chips { flex-wrap: wrap; }
+  .stat-split b { font-size: 18px; }
+  .warn-banner__txt small { white-space: normal; }
+
+  .vpop { left: 10px; right: 10px; top: 96px; width: auto; }
+  .vpop__road { width: 100%; }
+  .vpop__play { left: calc(50% - 20px); }
+  .seg-pop { max-width: calc(100vw - 20px); }
+  .measure-label { font-size: 11px; }
+}

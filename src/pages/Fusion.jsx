@@ -9,6 +9,7 @@ import { A, VEHICLE_ICONS } from '../assets.js'
 import { JEJU_CENTER, ROUTES, SEGMENTS_GEO, VEHICLES_GEO, vehicleTrack } from '../data/geo.js'
 import { HAS_VWORLD, createBaseLayers } from '../map/basemap.js'
 import { fromLonLat, useOlMap } from '../map/useOlMap.js'
+import { BP, useMedia } from '../useMedia.js'
 import './fusion.css'
 
 // UI-SIRS-003 기상·제설 융합 분석 — 교차 분석 지도는 OpenLayers + K-Geo플랫폼(브이월드) 배경지도
@@ -87,18 +88,22 @@ export default function Fusion() {
       return [...base.normal, new VectorLayer({ source: src })]
     },
   })
+  const stacked = useMedia(BP.tablet) // 태블릿·모바일: 지도 위, 분석 패널 아래로 쌓음
   useEffect(() => {
-    // 지도 영역(오른쪽 분석 패널·아래 차트 제외)에 제주 전역 맞춤
+    // 지도 영역에 제주 전역 맞춤 (데스크톱은 오른쪽 분석 패널·아래 차트를 제외한 영역)
+    const map = mapRef.current
+    if (!map) return
+    map.updateSize()
     const all = ROUTES.flatMap((r) => r.coords).concat([[126.18, 33.3], [126.93, 33.45]])
-    mapRef.current?.getView().fit(boundingExtent(all.map((c) => fromLonLat(c))), { padding: [70, 330, 250, 40] })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    map.getView().fit(boundingExtent(all.map((c) => fromLonLat(c))), { padding: stacked ? [40, 30, 30, 30] : [70, 330, 250, 40] })
+  }, [stacked, mapRef])
   void tick
   const px = (r) => pixelOf(SEGMENTS_GEO[r.seg]) ?? [-999, -999]
   const weak = [...ROADS].sort((a, b) => parseInt(b.pending.replace(/\D/g, ''), 10) - parseInt(a.pending.replace(/\D/g, ''), 10))
 
   return (
     <div className={`fusion${sel ? " has-sel" : ""}`}>
+      <div className="fusion__mapwrap">
       <div ref={elRef} className="fusion__ol" />
       <div className="fusion__overlays">
         <svg className="fusion__links" width="100%" height="100%">
@@ -148,15 +153,16 @@ export default function Fusion() {
 
       </div>
       {!HAS_VWORLD && <div className="basemap-note fusion__note">임시 배경지도(OpenStreetMap) · 브이월드 인증키 설정 시 K-Geo플랫폼 지도로 전환</div>}
+      </div>
 
       {/* ① 기상조건 융합 분석 */}
       <section className="fpanel fpanel--bottom">
         <h3>① 기상조건 융합 분석</h3>
-        <div className="vbars" style={{ left: 16 }}>
+        <div className="vbars">
           <p>기상조건별 위험 발생 건수</p>
           <div className="vbars__plot">
-            {WEATHER_BARS.map(([l, n, h, strong], i) => (
-              <div key={l} className="vbars__item" style={{ left: i * 72.33, width: 64.33 }} title={`${l} · ${n}건`}>
+            {WEATHER_BARS.map(([l, n, h, strong]) => (
+              <div key={l} className="vbars__item" title={`${l} · ${n}건`}>
                 <small>{n}</small>
                 <i style={{ height: h, background: strong ? '#4880ff' : 'rgba(72,128,255,0.35)' }} />
                 <em>{l}</em>
@@ -164,11 +170,11 @@ export default function Fusion() {
             ))}
           </div>
         </div>
-        <div className="vbars" style={{ left: 462 }}>
+        <div className="vbars">
           <p>노면온도 구간별 결빙 위험 발생률</p>
           <div className="vbars__plot">
-            {SURFACE_BARS.map(([l, n, h, c], i) => (
-              <div key={l} className="vbars__item" style={{ left: i * 62, width: 54 }} title={`노면 ${l} · ${n}%`}>
+            {SURFACE_BARS.map(([l, n, h, c]) => (
+              <div key={l} className="vbars__item" title={`노면 ${l} · ${n}%`}>
                 <small>{n}%</small>
                 <i style={{ height: h, background: c }} />
                 <em>{l}</em>

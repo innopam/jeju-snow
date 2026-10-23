@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { BP, useMedia } from '../useMedia.js'
 import { A } from '../assets.js'
 import { Dropdown } from '../components/Controls.jsx'
 import { DONG, GRADES, GRADE_COLORS, HAZARD_TYPES, SIDO, actionStats, fmtRange, occurrenceStats } from '../data/stats.js'
@@ -164,34 +165,39 @@ function BarCard({ title, sub, color, data }) {
   const max = Math.max(...data.map((d) => d.value), 1)
   return (
     <section className="card bars">
-      <h3>{title}</h3>
-      <span className="code">MCS-015</span>
-      <p className="bars__sub">{sub}</p>
-      <div className="bars__base" />
-      {data.map((d, i) => (
-        <div key={d.name} className="bars__item" style={{ left: 45 + i * 66 }} title={`${d.name} · ${d.value.toLocaleString()}건`}>
-          <em>{d.value}</em>
-          <i style={{ height: (d.value / max) * 58, background: d.strong ? `rgb(${color})` : `rgba(${color},0.32)` }} />
-          <small>{d.name}</small>
-        </div>
-      ))}
+      <div className="card__head">
+        <h3>{title}</h3>
+        <span className="code">MCS-015</span>
+      </div>
+      <p className="card__sub">{sub}</p>
+      <div className="bars__plot">
+        {data.map((d) => (
+          <div key={d.name} className="bars__item" title={`${d.name} · ${d.value.toLocaleString()}건`}>
+            <em>{d.value}</em>
+            <i style={{ height: `${(d.value / max) * 100}%`, background: d.strong ? `rgb(${color})` : `rgba(${color},0.32)` }} />
+            <small>{d.name}</small>
+          </div>
+        ))}
+      </div>
     </section>
   )
 }
 
-// ⑤ 위험요소(적설·결빙) 발생 추이 — 위험/주의/양호 등급별 라인
+// ⑤ 위험요소(적설·결빙) 발생 추이 — 위험/주의/양호 등급별 라인 (가로 폭에 맞춰 늘어남)
 function TrendCard({ occ }) {
-  const W = 1072
+  const VW = 1000
   const H = 138
   const shown = occ.grade === '전체' ? ['위험', '주의', '양호'] : [occ.grade]
   const maxVal = Math.max(...shown.flatMap((g) => occ.series[g]), 1)
   const top = Math.ceil(maxVal / 15) * 15
   const n = occ.labels.length
-  const x = (i) => (n === 1 ? W / 2 : (i / (n - 1)) * W)
+  const xp = (i) => (n === 1 ? 50 : (i / (n - 1)) * 100) // %
   const y = (v) => H - (v / top) * H
   const ticks = [3, 2, 1, 0].map((k) => (top / 3) * k)
-  const step = Math.max(1, Math.ceil(n / 7))
   const [hover, setHover] = useState(null)
+  const plotRef = useRef(null)
+  const narrow = useMedia(BP.mobile)
+  const step = Math.max(1, Math.ceil(n / (narrow ? 4 : 7)))
   return (
     <section className="card trend">
       <div className="trend__head">
@@ -202,29 +208,35 @@ function TrendCard({ occ }) {
           ))}
         </div>
       </div>
-      <div className="trend__chart" onMouseLeave={() => setHover(null)}>
-        {ticks.map((t, i) => (
-          <div key={i} className="hgrid" style={{ top: 16 + (i * H) / 3, left: 34, width: W }}>
-            <small>{Math.round(t)}</small>
-          </div>
-        ))}
-        <svg className="trend__svg" width={W} height={H} style={{ left: 34, top: 16 }} onMouseMove={(e) => {
-          const r = e.currentTarget.getBoundingClientRect()
-          setHover(Math.max(0, Math.min(n - 1, Math.round(((e.clientX - r.left) / W) * (n - 1)))))
-        }}>
-          {shown.map((g) => (
-            <polyline key={g} fill="none" stroke={GRADE_COLORS[g]} strokeWidth="2" strokeLinejoin="round" points={occ.series[g].map((v, i) => `${x(i)},${y(v)}`).join(' ')} />
-          ))}
-          {hover != null && <line x1={x(hover)} x2={x(hover)} y1="0" y2={H} stroke="#d0d5dd" strokeDasharray="3 3" />}
-          {hover != null && shown.map((g) => <circle key={g} cx={x(hover)} cy={y(occ.series[g][hover])} r="3.5" fill="#fff" stroke={GRADE_COLORS[g]} strokeWidth="2" />)}
-        </svg>
-        {occ.labels.map((l, i) => (i % step === 0 || i === n - 1 ? <small key={i} className="xlab" style={{ left: 34 + x(i), top: 168 }}>{l}</small> : null))}
-        {hover != null && (
-          <div className="chart-tip" style={{ left: Math.min(34 + x(hover) + 10, W - 100), top: 10 }}>
-            <b>{occ.labels[hover]}</b>
-            {shown.map((g) => <span key={g}><i style={{ background: GRADE_COLORS[g] }} />{g} {Math.round(occ.series[g][hover])}건</span>)}
-          </div>
-        )}
+      <div className="trend__chart">
+        <div className="trend__y">
+          {ticks.map((t, i) => <small key={i} style={{ top: (i * H) / 3 }}>{Math.round(t)}</small>)}
+        </div>
+        <div
+          className="trend__plot"
+          ref={plotRef}
+          onMouseLeave={() => setHover(null)}
+          onMouseMove={(e) => {
+            const r = plotRef.current.getBoundingClientRect()
+            setHover(Math.max(0, Math.min(n - 1, Math.round(((e.clientX - r.left) / r.width) * (n - 1)))))
+          }}
+        >
+          {ticks.map((_, i) => <i key={i} className="trend__grid" style={{ top: (i * H) / 3 }} />)}
+          <svg className="trend__svg" viewBox={`0 0 ${VW} ${H}`} preserveAspectRatio="none">
+            {shown.map((g) => (
+              <polyline key={g} fill="none" stroke={GRADE_COLORS[g]} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" points={occ.series[g].map((v, i) => `${(xp(i) / 100) * VW},${y(v)}`).join(' ')} />
+            ))}
+            {hover != null && <line x1={(xp(hover) / 100) * VW} x2={(xp(hover) / 100) * VW} y1="0" y2={H} stroke="#d0d5dd" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />}
+          </svg>
+          {hover != null && shown.map((g) => <span key={g} className="trend__dot" style={{ left: `${xp(hover)}%`, top: y(occ.series[g][hover]), borderColor: GRADE_COLORS[g] }} />)}
+          {occ.labels.map((l, i) => (i % step === 0 || i === n - 1 ? <small key={i} className="xlab" style={{ left: `${xp(i)}%`, top: H + 8 }}>{l}</small> : null))}
+          {hover != null && (
+            <div className={`chart-tip${xp(hover) > 70 ? ' left' : ''}`} style={{ left: `${xp(hover)}%`, top: 0 }}>
+              <b>{occ.labels[hover]}</b>
+              {shown.map((g) => <span key={g}><i style={{ background: GRADE_COLORS[g] }} />{g} {Math.round(occ.series[g][hover])}건</span>)}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   )
@@ -238,23 +250,25 @@ function HourlyCard({ hourly }) {
   const range = `${String(peak[0]).padStart(2, '0')}~${String(peak[peak.length - 1]).padStart(2, '0')}시`
   return (
     <section className="card hourly">
-      <h3>시간대별 발생 분포</h3>
-      <p className="sub">0~23시 결빙 발생 건수 · 최다 발생 {range}</p>
-      <span className="code">STA-002</span>
-      {[3, 2, 1, 0].map((k, i) => (
-        <div key={k} className="hgrid" style={{ top: 87 + i * 49.33, left: 43, width: 522 }}>
-          <small>{Math.round((top / 3) * k)}</small>
+      <div className="card__head">
+        <h3>시간대별 발생 분포</h3>
+        <span className="code">STA-002</span>
+      </div>
+      <p className="card__sub">0~23시 결빙 발생 건수 · 최다 발생 {range}</p>
+      <div className="hourly__chart">
+        <div className="hourly__y">
+          {[3, 2, 1, 0].map((k) => <small key={k}>{Math.round((top / 3) * k)}</small>)}
         </div>
-      ))}
-      {hourly.map((n, h) => {
-        const height = (n / top) * 148
-        return (
-          <i key={h} className="hbar" title={`${h}시 · ${n}건`} style={{ left: 43 + h * 22.087, top: 235 - height, height, background: peak.includes(h) ? '#4880ff' : 'rgba(72,128,255,0.32)' }} />
-        )
-      })}
-      {[0, 3, 6, 9, 12, 15, 18, 21].map((h) => (
-        <small key={h} className="xlab" style={{ left: 50 + h * 22.087, top: 241 }}>{h}시</small>
-      ))}
+        <div className="hourly__plot">
+          {[0, 1, 2, 3].map((i) => <i key={i} className="hgrid-line" style={{ top: `${(i / 3) * 100}%` }} />)}
+          {hourly.map((n, h) => (
+            <div key={h} className="hourly__col" title={`${h}시 · ${n}건`}>
+              <i style={{ height: `${(n / top) * 100}%`, background: peak.includes(h) ? '#4880ff' : 'rgba(72,128,255,0.32)' }} />
+              {h % 3 === 0 && <small>{h}시</small>}
+            </div>
+          ))}
+        </div>
+      </div>
       <p className="note">※ {range} 시간대 집중 발생 패턴</p>
     </section>
   )
@@ -263,31 +277,37 @@ function HourlyCard({ hourly }) {
 // ⑦ 유형·등급별 발생 분포 — 유형별 위험·주의·양호 누적 막대와 합계
 function GradeCard({ occ }) {
   const totals = occ.grades.map((g) => g.위험 + g.주의 + g.양호)
-  const px = 400 / Math.max(...totals, 1)
+  const maxTotal = Math.max(...totals, 1)
   return (
     <section className="card grades">
-      <h3>유형·등급별 발생 분포</h3>
-      <p className="sub">위험요소 유형 × 위험등급 누적 건수</p>
-      <span className="code">STA-002</span>
-      <div className="legend-inline legend-inline--abs">
+      <div className="card__head">
+        <h3>유형·등급별 발생 분포</h3>
+        <span className="code">STA-002</span>
+      </div>
+      <p className="card__sub">위험요소 유형 × 위험등급 누적 건수</p>
+      <div className="legend-inline legend-inline--sm">
         {['위험', '주의', '양호'].map((g) => (
           <span key={g} style={{ opacity: occ.grade === '전체' || occ.grade === g ? 1 : 0.3 }}><i style={{ background: GRADE_COLORS[g] }} />{g}</span>
         ))}
       </div>
-      {occ.grades.map((row, i) => {
-        const dim = occ.hazard !== '전체' && occ.hazard !== row.type
-        return (
-          <div key={row.type} className="grade-row" style={{ top: 93 + i * 34, opacity: dim ? 0.3 : 1 }}>
-            <span className="grade-row__label">{row.type}</span>
-            <span className="grade-row__bar">
-              {['위험', '주의', '양호'].map((g) => (
-                <i key={g} style={{ width: row[g] * px, background: GRADE_COLORS[g], opacity: occ.grade === '전체' || occ.grade === g ? 1 : 0.18 }} title={`${row.type} · ${g} ${row[g]}건`} />
-              ))}
-            </span>
-            <b>{occ.grade === '전체' ? totals[i] : row[occ.grade]}</b>
-          </div>
-        )
-      })}
+      <div className="grades__rows">
+        {occ.grades.map((row, i) => {
+          const dim = occ.hazard !== '전체' && occ.hazard !== row.type
+          return (
+            <div key={row.type} className="grade-row" style={{ opacity: dim ? 0.3 : 1 }}>
+              <span className="grade-row__label">{row.type}</span>
+              <span className="grade-row__track">
+                <span className="grade-row__bar" style={{ width: `${(totals[i] / maxTotal) * 100}%` }}>
+                  {['위험', '주의', '양호'].map((g) => (
+                    <i key={g} style={{ flex: row[g], background: GRADE_COLORS[g], opacity: occ.grade === '전체' || occ.grade === g ? 1 : 0.18 }} title={`${row.type} · ${g} ${row[g]}건`} />
+                  ))}
+                </span>
+              </span>
+              <b>{occ.grade === '전체' ? totals[i] : row[occ.grade]}</b>
+            </div>
+          )
+        })}
+      </div>
       <p className="note">※ 유형·등급 축은 시계열 차트와 동일 기간 조건으로 연동됩니다</p>
     </section>
   )

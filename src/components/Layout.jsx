@@ -5,6 +5,7 @@ import { canAccess, logout, sessionStore } from '../auth.js'
 import { ALERT_TYPES, alertStore, pushIncoming } from '../data/alerts.js'
 import { PAGE_TITLES } from '../data/routes.js'
 import { useStore } from '../store.js'
+import { BP, useMedia } from '../useMedia.js'
 import { Toast } from './Controls.jsx'
 import './layout.css'
 
@@ -20,7 +21,11 @@ export default function Layout() {
   const navigate = useNavigate()
   const session = useStore(sessionStore)
   const alerts = useStore(alertStore)
-  const [collapsed, setCollapsed] = useState(false)
+  const isMobile = useMedia(BP.mobile)
+  const isTablet = useMedia(BP.tablet)
+  const [collapsedPref, setCollapsed] = useState(null) // null = 화면 크기에 맞춤
+  const collapsed = collapsedPref ?? (isTablet && !isMobile)
+  const [drawer, setDrawer] = useState(false) // 모바일 메뉴
   const [alertFilter, setAlertFilter] = useState(null) // null = 닫힘
   const [toast, setToast] = useState('')
   const title = PAGE_TITLES[pathname] ?? PAGE_TITLES['/']
@@ -40,6 +45,7 @@ export default function Layout() {
   const goToAlert = (a) => {
     alertStore.set((list) => list.map((x) => (x.id === a.id ? { ...x, unread: false, fresh: false } : x)))
     setAlertFilter(null)
+    setDrawer(false)
     navigate('/', { state: { focusSeg: a.seg, nonce: Date.now() } })
   }
   const onLogout = () => {
@@ -48,18 +54,19 @@ export default function Layout() {
   }
 
   return (
-    <div className="app">
-      <aside className={`lnb${collapsed ? ' collapsed' : ''}`}>
+    <div className={`app${drawer ? ' drawer-open' : ''}`}>
+      {isMobile && drawer && <div className="lnb-backdrop" onClick={() => setDrawer(false)} />}
+      <aside className={`lnb${collapsed && !isMobile ? ' collapsed' : ''}`}>
         <div className="lnb__brand">
           <img src={A.logo} alt="Jeju" />
           <p>제설·결빙 대응 시스템</p>
         </div>
-        <button className="lnb__collapse" onClick={() => setCollapsed((c) => !c)} aria-label="메뉴 접기">
+        <button className="lnb__collapse" onClick={() => (isMobile ? setDrawer(false) : setCollapsed(!collapsed))} aria-label={isMobile ? '메뉴 닫기' : '메뉴 접기'}>
           <img src={A.icCollapse} alt="" />
         </button>
         <nav className="lnb__menu">
           {MENU.map((m) => (
-            <NavLink key={m.to} to={m.to} end className={({ isActive }) => `lnb__item${isActive ? ' active' : ''}`} title={m.label}>
+            <NavLink key={m.to} to={m.to} end className={({ isActive }) => `lnb__item${isActive ? ' active' : ''}`} title={m.label} onClick={() => setDrawer(false)}>
               <img src={m.icon} alt="" />
               <span className="lnb__label">{m.label}</span>
             </NavLink>
@@ -67,7 +74,7 @@ export default function Layout() {
         </nav>
         <div className="lnb__bottom">
           {canAccess(session, '/monitoring') && (
-            <NavLink to="/monitoring" className={({ isActive }) => `lnb__sub${isActive ? ' active' : ''}`} title="데이터 연계 모니터링">
+            <NavLink to="/monitoring" className={({ isActive }) => `lnb__sub${isActive ? ' active' : ''}`} title="데이터 연계 모니터링" onClick={() => setDrawer(false)}>
               <img src={A.icMonitor} alt="" />
               <span className="lnb__label">데이터 연계 모니터링</span>
             </NavLink>
@@ -81,6 +88,9 @@ export default function Layout() {
 
       <div className="main">
         <header className="topbar">
+          <button className="topbar__menu" onClick={() => setDrawer(true)} aria-label="메뉴 열기">
+            <span /><span /><span />
+          </button>
           <h1>{title}</h1>
           <div className="topbar__right">
             <button className="bell" onClick={() => setAlertFilter((f) => (f ? null : '전체'))} aria-label={`위험 이벤트 알림 ${unread}건`}>
@@ -88,7 +98,7 @@ export default function Layout() {
               {unread > 0 && <span className="bell__count">{unread > 99 ? 99 : unread}</span>}
             </button>
             <p className="topbar__user" title={`${session?.role} · 로그인 ${session?.loginAt ?? ''}`}>
-              {session?.dept} {session?.name} 님
+              <span className="topbar__name">{session?.dept} {session?.name} 님</span>
               <span className="role-tag">{session?.role}</span>
             </p>
           </div>

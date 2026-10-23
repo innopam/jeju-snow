@@ -110,15 +110,17 @@ export default function Monitoring() {
           <div className="mcard__head">
             <h3>배치 스케줄 관리</h3>
             <small>총 {batchList.length}개</small>
-            <span style={{ flex: 1 }} />
+            <span className="mcard__spacer" />
+            <span className="mcard__tools">
             <b className="lbl">연계 대상</b>
             <Dropdown value={target} options={TARGETS} onChange={(v) => { setTarget(v); setPage(1) }} width={170} height={40} />
-            <label className="search" style={{ width: 220 }}>
+            <label className="search mcard__search">
               <img src={A.icSearch} alt="" />
               <input placeholder="배치 ID · 배치명 검색" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} />
             </label>
+            </span>
           </div>
-          <table className="mtable">
+          <div className="table-scroll"><table className="mtable">
             <colgroup>
               <col style={{ width: 56 }} /><col style={{ width: 136 }} /><col style={{ width: 190 }} /><col style={{ width: 164 }} />
               <col style={{ width: 86 }} /><col style={{ width: 90 }} /><col style={{ width: 94 }} /><col style={{ width: 109 }} />
@@ -156,7 +158,7 @@ export default function Monitoring() {
               ))}
               {shown.length === 0 && <tr><td colSpan={11} className="c empty">검색 결과가 없습니다.</td></tr>}
             </tbody>
-          </table>
+          </table></div>
           <Pagination page={page} pages={pages} onChange={setPage} />
         </section>
 
@@ -179,7 +181,7 @@ export default function Monitoring() {
               <img src={A.icSearch} alt="" />
               <input placeholder="배치 ID · 항목명 검색" value={draft.q} onChange={(e) => setDraft((d) => ({ ...d, q: e.target.value }))} onKeyDown={(e) => e.key === 'Enter' && search()} />
             </label>
-            <span style={{ flex: 1 }} />
+            <span className="mfilter__spacer" />
             <button className="btn-search" onClick={search}>
               <img src={A.icSearchWhite} alt="" />
               조회
@@ -191,7 +193,7 @@ export default function Monitoring() {
             {applied.from === applied.to ? applied.from : `${applied.from} ~ ${applied.to}`} · {tab} 이력 {histList.length.toLocaleString()}건
             {histList.some((r) => r.result === '실패' && !r.retried) && <em> · 미처리 실패 {histList.filter((r) => r.result === '실패' && !r.retried).length}건</em>}
           </p>
-          <table className="mtable">
+          <div className="table-scroll"><table className="mtable">
             <colgroup>
               <col style={{ width: 70 }} /><col style={{ width: 170 }} /><col style={{ width: 150 }} /><col style={{ width: 150 }} />
               <col style={{ width: 120 }} /><col style={{ width: 80 }} /><col style={{ width: 80 }} /><col style={{ width: 110 }} />
@@ -228,7 +230,7 @@ export default function Monitoring() {
               })}
               {hShown.length === 0 && <tr><td colSpan={10} className="c empty">조회 결과가 없습니다. 조회 기간·조건을 바꿔 보세요.</td></tr>}
             </tbody>
-          </table>
+          </table></div>
           <Pagination page={hPage} pages={hPages} onChange={setHPage} />
         </section>
       </div>
