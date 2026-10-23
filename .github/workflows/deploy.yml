@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   build:
+    # 화면 배포는 개인 계정 저장소(innopamSolution/jeju-snow)에서만 — innopam 조직 Pages는 innopam.com 으로 리다이렉트되므로 사용하지 않음
+    if: github.repository == 'innopamSolution/jeju-snow'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
