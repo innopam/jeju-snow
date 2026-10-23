@@ -39,10 +39,11 @@ const SURFACE_BARS = [
   ['2℃', 12, 19, 'rgba(0,182,155,0.6)'], ['0℃', 21, 34, 'rgba(0,182,155,0.6)'], ['-1℃', 30, 48, 'rgba(252,190,45,0.6)'],
   ['-2℃', 38, 61, 'rgba(252,190,45,0.6)'], ['-3℃', 46, 74, 'rgba(249,60,101,0.9)'], ['-4℃', 54, 86, 'rgba(249,60,101,0.9)'], ['-5℃', 60, 96, 'rgba(249,60,101,0.9)'],
 ]
-const GRADE = { 우수: ['#c7f5ce', '#00b69b'], 양호: ['#bfdbfe', '#4880ff'], 주의: ['#fff0bd', '#bb4d00'] }
+// 판정: 총 대응시간 기준 우수(≤45분) · 양호(≤60분, 목표) · 주의(≤75분) · 미흡(>75분)
+const GRADE = { 우수: ['#c7f5ce', '#00b69b'], 양호: ['#bfdbfe', '#4880ff'], 주의: ['#fff0bd', '#bb4d00'], 미흡: ['#ffd2d5', '#d92338'] }
+const gradeOf = (min) => (min <= 45 ? '우수' : min <= 60 ? '양호' : min <= 75 ? '주의' : '미흡')
 const RESPONSE = [
-  ['1100도로', '우수', 9, 25], ['평화로', '우수', 12, 29], ['5·16도로', '양호', 15, 37],
-  ['번영로', '양호', 14, 41], ['비자림로', '주의', 22, 41], ['일주동로', '주의', 26, 44],
+  ['1100도로', 9, 25], ['평화로', 12, 29], ['5·16도로', 15, 37], ['번영로', 14, 41], ['비자림로', 22, 41], ['일주동로', 26, 44], ['남조로', 31, 52],
 ]
 const PX_PER_MIN = 2.25 // 목표 60분 = 135px
 
@@ -50,10 +51,12 @@ export default function Fusion() {
   const [sel, setSel] = useState(1)
   const [sort, setSort] = useState('asc')
   const selRoad = ROADS.find((r) => r.id === sel)
-  const response = [...RESPONSE].sort((a, b) => (sort === 'asc' ? 1 : -1) * (a[2] + a[3] - (b[2] + b[3])))
+  const response = [...RESPONSE].sort((a, b) => (sort === 'asc' ? 1 : -1) * (a[1] + a[2] - (b[1] + b[2])))
+  const avg = (k) => RESPONSE.reduce((s, r) => s + r[k], 0) / RESPONSE.length
+  const weak = [...ROADS].sort((a, b) => parseInt(b.pending.replace(/\D/g, ''), 10) - parseInt(a.pending.replace(/\D/g, ''), 10))
 
   return (
-    <div className="fusion">
+    <div className={`fusion${sel ? " has-sel" : ""}`}>
       <img className="fusion__map" src={A.mapFusion} alt="제주도 지도" />
       <img className="fusion__abs" src={A.fusionL4} alt="" style={{ left: 203, top: 41, width: 680, height: 650 }} />
       <img className="fusion__abs" src={A.fusionL2} alt="" style={{ left: 224, top: 41, width: 638, height: 650 }} />
@@ -72,14 +75,14 @@ export default function Fusion() {
           key={r.id}
           className="fpin"
           style={{ left: r.pin.x, top: r.pin.y, width: r.pin.size, height: r.pin.size, background: r.pin.color, fontSize: r.pin.size > 20 ? 11 : 9.5 }}
-          onClick={() => setSel(r.id)}
+          onClick={() => setSel((cur) => (cur === r.id ? null : r.id))}
           aria-label={r.name}
         >
           {r.id}
         </button>
       ))}
       {ROADS.map((r) => (
-        <button key={r.id} className={`fcard${sel === r.id ? ' on' : ''}`} style={{ left: r.card.x, top: r.card.y, width: sel === r.id ? 232 : r.card.w }} onClick={() => setSel(r.id)}>
+        <button key={r.id} className={`fcard${sel === r.id ? ' on' : ''}`} style={{ left: r.card.x, top: r.card.y, width: sel === r.id ? 232 : r.card.w }} onClick={() => setSel((cur) => (cur === r.id ? null : r.id))}>
           <span className="fcard__head">
             <i style={{ background: r.hot ? '#f93c65' : '#fcbe2d' }}>{r.id}</i>
             <b>{r.name}</b>
@@ -137,8 +140,10 @@ export default function Fusion() {
             <span><i className="goal" />목표 60분</span>
           </div>
           <div className="rank__list">
-            {response.map(([name, grade, go, spray], i) => (
-              <div key={name} className={`rank-row${i === 0 ? ' top' : ''}`}>
+            {response.map(([name, go, spray], i) => {
+              const grade = gradeOf(go + spray)
+              return (
+              <div key={name} className={`rank-row${i === 0 ? ' top' : ''}`} title={`${name} · 총 ${go + spray}분 (${grade})`}>
                 <small>{i + 1}</small>
                 <div className="rank-row__info">
                   <p><b>{name}</b><em className="badge" style={{ background: GRADE[grade][0] }}>{grade}</em></p>
@@ -154,11 +159,12 @@ export default function Fusion() {
                   <small>분</small>
                 </p>
               </div>
-            ))}
+              )
+            })}
           </div>
           <div className="rank__sum">
             <b>전체 평균</b>
-            <span>출동 16.3분 · 살포 36.2분 · 총 52.5분</span>
+            <span>출동 {avg(1).toFixed(1)}분 · 살포 {avg(2).toFixed(1)}분 · 총 {(avg(1) + avg(2)).toFixed(1)}분</span>
           </div>
         </section>
 
@@ -167,8 +173,8 @@ export default function Fusion() {
           <h3>③ 미제설 취약구간 교차 분석</h3>
           <p className="weak__title">취약구간 목록</p>
           <div className="weak__rows">
-            {ROADS.map((r) => (
-              <button key={r.id} className={`weak-row${sel === r.id ? ' on' : ''}`} onClick={() => setSel(r.id)}>
+            {weak.map((r) => (
+              <button key={r.id} className={`weak-row${sel === r.id ? ' on' : ''}`} onClick={() => setSel((cur) => (cur === r.id ? null : r.id))} aria-pressed={sel === r.id}>
                 <small>{r.id}</small>
                 <span className="weak-row__main">
                   <em className="badge" style={{ background: ISSUE_BADGE[r.issue] }}>{r.issue}</em>

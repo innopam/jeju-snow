@@ -50,7 +50,7 @@
 .rank__legend span { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #999; white-space: nowrap; }
 .rank__legend i { width: 8px; height: 8px; border-radius: 2px; }
 .rank__legend i.goal { width: 1.5px; height: 10px; border-radius: 0; background: #ff4d55; }
-.rank__list { position: absolute; left: 8px; top: 71px; width: 276px; }
+.rank__list { position: absolute; left: 8px; top: 71px; width: 276px; height: 360px; overflow-y: auto; scrollbar-width: thin; }
 .rank-row { display: flex; align-items: center; gap: 8px; height: 60px; padding: 0 10px; border-bottom: 1px solid #edeff3; background: #fff; position: relative; }
 .rank-row.top { background: #f1f4f9; }
 .rank-row.top::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #4880ff; }
@@ -85,3 +85,6 @@
 .weak-row__main b { font-size: 12px; color: #222; white-space: nowrap; }
 .weak-row strong { font-size: 17px; margin-left: auto; white-space: nowrap; }
 @keyframes halo { 50% { opacity: .55; } }
+.fcard:not(.on) { opacity: .92; }
+.fusion.has-sel .fcard:not(.on) { opacity: .55; }
+.fusion.has-sel .fcard:not(.on):hover { opacity: 1; }

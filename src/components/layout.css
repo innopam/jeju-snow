@@ -28,12 +28,18 @@
 
 /* 실시간 알림 배너 */
 .rt-banner {
-  position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 25;
+  position: absolute; top: 48px; left: calc(50% - 190px); transform: translateX(-50%); z-index: 25;
   display: flex; align-items: center; gap: 8px; padding: 14px 16px; background: #fff;
   border: 1px solid var(--border-default); border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 24, 40, .08);
   animation: rt-in .35s ease-out;
 }
 .rt-banner img { width: 14px; height: 14px; }
 .rt-banner b { font-size: 14px; color: #101828; }
-.rt-banner em { font-style: normal; font-size: 10px; font-weight: 700; color: var(--danger); background: #ffe7e8; padding: 3px 8px; border-radius: 10px; }
+.rt-banner > button { font-size: 10px; font-weight: 700; color: var(--danger); background: #ffe7e8; padding: 3px 8px; border-radius: 10px; }
+.rt-banner > button:hover { background: #ffd2d5; }
+.rt-banner > .rt-banner__close { background: none; color: #999; font-size: 16px; padding: 0 0 0 4px; line-height: 1; }
 @keyframes rt-in { from { opacity: 0; transform: translate(-50%, -8px); } }
+.alert-row.fresh { animation: fresh 1.2s ease-out 2; }
+@keyframes fresh { 50% { background: #fff4f4; } }
+.alert-dd__empty { padding: 32px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid var(--border-default); }
+.role-tag { margin-left: 6px; font-size: 10px; font-weight: 700; color: var(--bg-brand); background: #eeedfe; padding: 2px 6px; border-radius: 4px; vertical-align: 1px; }

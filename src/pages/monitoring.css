@@ -32,7 +32,8 @@
 .mtabs { width: 208px; border-bottom: 0; }
 .mtabs button { flex: none; width: 104px; }
 .mcard > .mtabs { border-bottom: 1px solid #e4e7ec; width: 100%; }
-.mfilter { display: flex; align-items: center; gap: 12px; }
+.mfilter { display: flex; align-items: center; gap: 9px; }
+.mfilter .search input { font-size: 13px; }
 .mfilter > span { color: #555; }
 .date-field { position: relative; display: flex; align-items: center; width: 128px; height: 40px; border: 1px solid #b8b8b8; border-radius: 5px; padding: 0 12px; background: #fff; }
 .date-field input { border: 0; outline: 0; width: 100%; font-size: 14px; background: none; }
@@ -40,3 +41,25 @@
 .btn-search { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; background: #37348f; color: #fff; font-size: 14px; font-weight: 700; }
 .btn-search img { width: 16px; height: 16px; }
 .btn-reset { height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid #d0d5dd; background: #fff; font-size: 14px; font-weight: 700; color: #111; }
+
+/* ── 기능 구현 추가분 ─────────────────────────── */
+.mtable .link { color: #101828; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mtable .link:hover { color: var(--link); text-decoration: underline; }
+.pager button:disabled { opacity: .3; cursor: default; background: none; }
+.mfilter__err { color: var(--danger); font-size: 12px; margin-top: -4px; }
+.mresult { font-size: 12px; color: #555; }
+.mresult em { font-style: normal; color: #ef3d45; font-weight: 700; }
+.done-tag { font-size: 11px; color: #16a05d; font-weight: 700; }
+.date-field { width: 140px; padding: 0 10px; }
+.date-field input { font-size: 13px; }
+.btn-search, .btn-reset { white-space: nowrap; flex: none; }
+.modal-back { position: fixed; inset: 0; background: rgba(16, 24, 40, .45); display: grid; place-items: center; z-index: 90; }
+.modal { width: 420px; background: #fff; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.2); }
+.modal h3 { margin: 0; font-size: 18px; }
+.modal dl { margin: 0; display: grid; grid-template-columns: 80px 1fr; row-gap: 6px; font-size: 13px; }
+.modal dt { color: #777; }
+.modal dd { margin: 0; font-weight: 500; }
+.modal label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; }
+.modal input, .modal select { height: 40px; border: 1px solid var(--border-input); border-radius: 5px; padding: 0 10px; font-size: 14px; background: #fff; }
+.modal__row { flex-direction: row !important; align-items: center; justify-content: space-between; }
+.modal__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }

@@ -45,3 +45,34 @@
 .grade-row__bar { display: flex; height: 18px; border-radius: 2px; overflow: hidden; }
 .grade-row__bar i { height: 18px; }
 .grade-row b { position: absolute; right: 13px; font-size: 10px; }
+
+/* ── 기능 구현 추가분 ─────────────────────────── */
+.bars__sub { position: absolute; left: 15px; top: 34px; font-size: 10px; color: #999; }
+.bars__item i { transition: height .35s ease; }
+.bars__item em { position: absolute; left: 50%; transform: translateX(-50%); bottom: 33px; font-style: normal; font-size: 9px; color: #777; opacity: 0; transition: opacity .15s; }
+.bars__item:hover em { opacity: 1; bottom: auto; top: 44px; }
+.is-loading { opacity: .45; pointer-events: none; transition: opacity .15s; }
+.filter__go:disabled { opacity: .7; }
+
+.daterange { position: relative; }
+.daterange__pop {
+  position: absolute; left: 0; top: calc(100% + 6px); z-index: 40; width: 320px; background: #fff; border: 1px solid var(--border-default);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(16,24,40,.14); padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.daterange__inputs { display: flex; align-items: center; gap: 6px; }
+.daterange__inputs input { flex: 1; height: 34px; border: 1px solid var(--border-input); border-radius: 5px; padding: 0 8px; font-size: 13px; }
+.daterange__presets { display: flex; gap: 6px; }
+.daterange__presets button { padding: 4px 10px; border-radius: 12px; background: var(--bg-chip); font-size: 12px; color: #555; }
+.daterange__presets button:hover { background: #e8e7fb; color: var(--bg-brand); }
+.daterange__err { font-size: 12px; color: var(--danger); }
+.daterange__actions { display: flex; justify-content: flex-end; gap: 6px; }
+.daterange__actions button:first-child { height: 32px; padding: 0 12px; border-radius: 4px; border: 1px solid var(--border-default); font-size: 13px; }
+
+.trend__svg { position: absolute; overflow: visible; }
+.trend__svg polyline { transition: all .35s ease; }
+.trend__tag { font-size: 11px; font-weight: 500; color: var(--bg-brand); background: #eeedfe; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+.chart-tip { position: absolute; background: #111038; color: #fff; border-radius: 6px; padding: 8px 10px; font-size: 11px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; z-index: 5; min-width: 92px; }
+.chart-tip span { display: flex; align-items: center; gap: 5px; }
+.chart-tip i { width: 8px; height: 3px; border-radius: 2px; }
+.hbar { transition: height .35s ease, top .35s ease; }
+.grade-row__bar i { transition: width .35s ease; }

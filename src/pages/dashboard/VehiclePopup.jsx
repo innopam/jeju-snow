@@ -39,7 +39,7 @@ export default function VehiclePopup({ vehicle, onClose }) {
           </span>
         )}
         <span className="vpop__time">{fmt(now)}</span>
-        {!playing && (
+        {live && !playing && (
           <button className="vpop__play" onClick={() => setPlaying(true)} aria-label="재생">
             <img src={A.videoPlay} alt="" />
           </button>

@@ -58,7 +58,7 @@
 
 /* 위치 정보 */
 .breadcrumb {
-  position: absolute; top: 13px; left: 623.5px; transform: translateX(-50%); height: 34px; display: flex; align-items: center; gap: 4px;
+  position: absolute; top: 13px; transform: translateX(-50%); height: 34px; display: flex; align-items: center; gap: 4px;
   padding: 8px 12px; background: #fff; border-radius: 4px; filter: drop-shadow(var(--shadow-float)); font-size: 14px; color: #383f43;
   letter-spacing: -0.28px; white-space: nowrap; z-index: 4;
 }
@@ -86,7 +86,7 @@
 
 /* 구간 정보 팝업 */
 .seg-pop {
-  position: absolute; display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border-radius: 12px;
+  position: absolute; transform: translate(-50%, 18px); flex-wrap: wrap; display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border-radius: 12px;
   border: 1px solid rgba(0,0,0,.08); filter: drop-shadow(0 4px 8px rgba(0,0,0,.1)); z-index: 3;
 }
 .seg-pop__icon { width: 44px; height: 44px; border-radius: 10px; background: #f2f2fa; display: grid; place-items: center; }
@@ -242,3 +242,60 @@
 .vpop__play { position: absolute; left: 112px; top: 54px; width: 40px; height: 40px; }
 .vpop__play img { width: 40px; height: 40px; }
 .vpop__cap { position: absolute; left: 8px; bottom: 6px; font-size: 10px; font-weight: 500; color: #fff; opacity: .8; }
+
+/* ── 기능 구현 추가분 ─────────────────────────── */
+.map__base.satellite { filter: saturate(.55) brightness(.72) contrast(1.15) hue-rotate(-10deg); }
+.measuring .map { cursor: crosshair; }
+.cadastral {
+  position: absolute; left: -336.6px; top: -7px; width: 1857.2px; height: 1164.5px; pointer-events: none; opacity: .22;
+  background-image: linear-gradient(rgba(120, 100, 80, .5) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 100, 80, .5) 1px, transparent 1px);
+  background-size: 22px 18px;
+}
+.route-tag { position: absolute; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; pointer-events: none; }
+.route-tag.priority { background: #37348f; color: #fff; }
+.route-tag.traffic { background: #fff; color: #37348f; border: 1px solid #9b98dc; }
+.trail { transition: opacity .2s; }
+.trail.dim { opacity: .25; }
+.trail.on { filter: drop-shadow(0 0 3px rgba(55, 52, 143, .6)); }
+
+.seg-dot {
+  position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--c);
+  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15); z-index: 1;
+}
+.seg-dot:hover, .seg-dot.on { transform: scale(1.35); box-shadow: 0 0 0 3px rgba(55, 52, 143, .35); }
+.seg-dot .mk.refreeze {
+  position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+  border: 2px dashed #f93c65; animation: spin 6s linear infinite, pulse 1.6s ease-in-out infinite; pointer-events: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 50% { opacity: .45; } }
+.seg-dot .mk-tag { position: absolute; left: 14px; top: -16px; font-style: normal; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; white-space: nowrap; pointer-events: none; }
+.seg-dot .mk-tag.ice { background: #1d4ed8; color: #fff; }
+.seg-dot .mk-tag.habitual { background: #fff4d9; color: #dc7200; border: 1px solid #f5c26b; top: 10px; }
+
+.seg-pop__warn { font-style: normal; margin-left: 6px; font-size: 10px; font-weight: 700; color: #fff; background: #f93c65; padding: 1px 5px; border-radius: 3px; }
+.seg-pop__close { position: absolute; right: 8px; top: 4px; font-size: 16px; color: #999; line-height: 1; }
+.seg-pop__links { width: 100%; display: flex; gap: 6px; border-top: 1px solid #eee; padding-top: 8px; }
+.seg-pop__links button { flex: 1; height: 26px; border-radius: 4px; background: #f2f4f7; font-size: 11px; font-weight: 500; color: #37348f; }
+.seg-pop__links button:hover { background: #e8e7fb; }
+.seg-pop::after { content: ''; position: absolute; left: 50%; top: -7px; width: 12px; height: 12px; background: #fff; transform: translateX(-50%) rotate(45deg); border-left: 1px solid rgba(0,0,0,.08); border-top: 1px solid rgba(0,0,0,.08); }
+
+.tool.on { background: #37348f; }
+.tool.on > img { filter: brightness(0) invert(1); }
+.measure { position: absolute; inset: 0; pointer-events: none; }
+.measure polyline, .measure polygon { fill: rgba(55, 52, 143, .15); stroke: #37348f; stroke-width: 2.5; stroke-dasharray: 6 4; }
+.measure polyline { fill: none; }
+.measure circle { fill: #fff; stroke: #37348f; stroke-width: 2; }
+.measure-label { position: absolute; display: flex; align-items: center; gap: 6px; background: #111038; color: #fff; font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 6; }
+.measure-label button { color: #fff; opacity: .7; font-size: 14px; line-height: 1; }
+
+.route-head {
+  position: absolute; top: 13px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 7px 8px 7px 14px;
+  background: #fff; border-radius: 6px; filter: drop-shadow(var(--shadow-float)); font-size: 13px; white-space: nowrap; z-index: 4;
+}
+.route-head span { color: #777; font-size: 12px; }
+.route-head button { height: 26px; padding: 0 10px; border-radius: 4px; background: #37348f; color: #fff; font-size: 12px; font-weight: 700; }
+.layer-empty { font-size: 12px; color: #999; }
+.device-alert.on { outline: 2px solid #d92338; }
+.recent button { flex: 1; text-align: left; color: #555; font-size: 12px; }
+.recent button:hover { color: #37348f; text-decoration: underline; }
