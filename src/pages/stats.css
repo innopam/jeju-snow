@@ -1,5 +1,5 @@
-/* UI-SIRS-002 통계 — 데스크톱은 시안(1200px 기준) 비율, 태블릿·모바일은 1열로 쌓임 */
-.stats { max-width: 1200px; margin: 17px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+/* UI-SIRS-002 통계 — 화면 폭 전체를 좌우 여백 24px로 채우고, 2열 카드는 1:1 비율 유지. 태블릿·모바일은 1열 */
+.stats { margin: 17px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
 .card { position: relative; background: #fff; border: 1px solid var(--border-divider); border-radius: 4px; }
 .card h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.14px; line-height: 1.4; }
 .card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }

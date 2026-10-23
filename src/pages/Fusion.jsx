@@ -90,12 +90,19 @@ export default function Fusion() {
   })
   const stacked = useMedia(BP.tablet) // 태블릿·모바일: 지도 위, 분석 패널 아래로 쌓음
   useEffect(() => {
-    // 지도 영역에 제주 전역 맞춤 (데스크톱은 오른쪽 분석 패널·아래 차트를 제외한 영역)
-    const map = mapRef.current
-    if (!map) return
-    map.updateSize()
-    const all = ROUTES.flatMap((r) => r.coords).concat([[126.18, 33.3], [126.93, 33.45]])
-    map.getView().fit(boundingExtent(all.map((c) => fromLonLat(c))), { padding: stacked ? [40, 30, 30, 30] : [70, 330, 250, 40] })
+    // 지도 영역에 제주 전역 맞춤 (데스크톱은 오른쪽 분석 패널·아래 차트를 제외한 영역) — 창 크기가 바뀌면 다시 맞춤
+    const fit = () => {
+      const map = mapRef.current
+      if (!map) return
+      map.updateSize()
+      const all = ROUTES.flatMap((r) => r.coords).concat([[126.18, 33.3], [126.93, 33.45]])
+      map.getView().fit(boundingExtent(all.map((c) => fromLonLat(c))), { padding: stacked ? [40, 30, 30, 30] : [60, 340, 262, 40] })
+    }
+    fit()
+    let t = 0
+    const onResize = () => { clearTimeout(t); t = setTimeout(fit, 150) }
+    window.addEventListener('resize', onResize)
+    return () => { clearTimeout(t); window.removeEventListener('resize', onResize) }
   }, [stacked, mapRef])
   void tick
   const px = (r) => pixelOf(SEGMENTS_GEO[r.seg]) ?? [-999, -999]
