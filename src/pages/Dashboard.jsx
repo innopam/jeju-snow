@@ -12,7 +12,7 @@ import { A, VEHICLE_ICONS } from '../assets.js'
 import { Checkbox, Radio } from '../components/Controls.jsx'
 import { VEHICLES } from '../data/dashboard.js'
 import {
-  CCTV_GEO, COUNT_COLORS, DETAIL_COUNTS, DETAIL_PLACES, DETAIL_ROUTE, DETAIL_SURFACE, JEJU_CENTER, ROUTES, SEGMENTS_GEO, SURFACE_COLORS,
+  CCTV_GEO, COUNT_COLORS, JEJU_CENTER, ROUTES, SEGMENTS_GEO, SURFACE_COLORS,
   VEHICLES_GEO, WEATHER_GEO, nearestRegionGeo, vehicleTrack,
 } from '../data/geo.js'
 import { RISK_COLOR, SEGMENTS, STATE_COLOR, segName } from '../data/segments.js'
@@ -41,7 +41,6 @@ const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중
 const PANEL_DESKTOP = 380
 const mq = (q) => typeof window !== 'undefined' && window.matchMedia(q).matches
 const segGeo = (s) => SEGMENTS_GEO[s.code]
-const detailRoute = ROUTES.find((r) => r.name === DETAIL_ROUTE)
 
 export default function Dashboard() {
   const { setToast } = useOutletContext()
@@ -84,7 +83,7 @@ export default function Dashboard() {
       ROUTES.forEach((r) =>
         r.coords.slice(0, -1).forEach((a, i) => {
           const f = new Feature(new LineString([fromLonLat(a), fromLonLat(r.coords[i + 1])]))
-          f.setProperties({ route: r.name, idx: i, state: r.states[i] })
+          f.setProperties({ route: r.name, idx: i, state: r.states[i], count: r.counts[i], surface: r.surface[i] })
           routes.getSource().addFeature(f)
         }),
       )
@@ -104,7 +103,7 @@ export default function Dashboard() {
     base.normal.forEach((l) => l.setVisible(basemap === 'normal' || !base.satellite))
     base.satellite?.forEach((l) => l.setVisible(basemap === 'satellite'))
     cadastral?.setVisible(layers.has('연속지적도'))
-    trails.setVisible(tab === 'vehicles' && mode === 'status')
+    trails.setVisible(tab === 'vehicles')
     routes.changed()
     trails.changed()
   }, [basemap, layers, tab, mode, selectedMapId])
@@ -162,13 +161,8 @@ export default function Dashboard() {
     })
   }
 
-  // 제설 작업 레이어(택1) — 작업 횟수·노면 상태는 1100도로 상세로 확대 (UI-SIRS-001-02·03)
-  const changeMode = (m) => {
-    setMode(m)
-    stopMeasure()
-    if (m === 'status') fitIsland()
-    else fitTo(detailRoute.coords)
-  }
+  // 제설 작업 레이어(택1) — 선택에 따라 전체 노선의 색상·범례를 제설 작업 상태 / 작업 횟수 / 노면 상태로 바꾼다
+  const changeMode = (m) => setMode(m)
   const zoom = (d) => {
     const v = mapRef.current?.getView()
     v?.animate({ zoom: v.getZoom() + d, duration: 250 })
@@ -222,13 +216,14 @@ export default function Dashboard() {
     selectVehicle(idx)
   }
 
-  const island = mode === 'status'
+  const island = true // 모든 제설 작업 레이어가 전체 노선 지도 위에서 동작
+  const showEdgeLabels = mode !== 'status' && zoomLevelOf(mapRef) >= 11 // 확대 시 구간별 횟수·노면 상태 라벨
   const showLayer = (l) => layers.has(l)
   const filteredBase = BASE_LAYERS.filter((l) => l.includes(layerQuery.trim()))
   const filteredSection = SECTION_LAYERS.filter((l) => l.includes(layerQuery.trim()))
   const legend = LEGENDS[mode]
   const seg = SEGMENTS.find((s) => s.code === segCode)
-  const vehiclesShown = island ? VEHICLES_GEO : VEHICLES_GEO.filter((v) => v.road === DETAIL_ROUTE)
+  const vehiclesShown = VEHICLES_GEO
   const zoomLevel = mapRef.current?.getView().getZoom() ?? 10.3
   void tick // 지도 이동 시 다시 그리기
 
@@ -253,7 +248,7 @@ export default function Dashboard() {
               <img src={A.icCctv} alt="" />
             </button>
           ) })}
-        {SEGMENTS.filter((s) => island || s.code === 'K-12').map((s) => {
+        {SEGMENTS.map((s) => {
           const p = px(segGeo(s))
           return (
             <button
@@ -270,17 +265,18 @@ export default function Dashboard() {
             </button>
           )
         })}
-        {!island && detailRoute.coords.slice(0, -1).map((a, i) => {
-          const b = detailRoute.coords[i + 1]
+        {showEdgeLabels && ROUTES.flatMap((r) => r.coords.slice(0, -1).map((a, i) => {
+          const b = r.coords[i + 1]
           const p = px([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])
-          const n = DETAIL_COUNTS[i]
-          const color = mode === 'count' ? COUNT_COLORS[n] : SURFACE_COLORS[DETAIL_SURFACE[i]]
+          const n = r.counts[i]
+          const sf = r.surface[i]
+          const color = mode === 'count' ? COUNT_COLORS[n] : SURFACE_COLORS[sf]
           return (
-            <span key={i} className="count-label" style={{ left: p[0] + 14, top: p[1] - 9, color, borderColor: color }} title={`${DETAIL_PLACES[i]} · 제설 ${n}회 · 노면 ${DETAIL_SURFACE[i]}`}>
-              {mode === 'count' ? (n ? `${n}회` : '미작업') : DETAIL_SURFACE[i]}
+            <span key={`${r.name}-${i}`} className="count-label" style={{ left: p[0] + 10, top: p[1] - 9, color, borderColor: color }} title={`${r.name} ${i + 1}구간 · 제설 ${n}회 · 노면 ${sf}`}>
+              {mode === 'count' ? (n ? `${n}회` : '미작업') : sf}
             </span>
           )
-        })}
+        }))}
         {selPx && tab === 'vehicles' && island && <span className="veh-ring" style={{ left: selPx[0], top: selPx[1] }} />}
         {vehiclesShown.map((v) => {
           const t = vehicleTrack(v)
@@ -365,22 +361,14 @@ export default function Dashboard() {
         )}
       </section>
 
-      {island ? (
-        <div className="breadcrumb" style={{ left: visibleCenterPx[0] }}>
-          <img src={A.icPin} alt="" />
-          <span>제주특별자치도</span>
-          <img src={A.icChevronRight} alt="" />
-          <span>{region.city}</span>
-          <img src={A.icChevronRight} alt="" />
-          <b>{region.name}</b>
-        </div>
-      ) : (
-        <div className="route-head" style={{ left: visibleCenterPx[0] }}>
-          <b>1100도로 상세</b>
-          <span>{mode === 'count' ? '구간별 제설 작업 횟수' : '노면 센서 기준 구간별 노면 상태'}</span>
-          <button onClick={() => changeMode('status')}>전체 노선 보기</button>
-        </div>
-      )}
+      <div className="breadcrumb" style={{ left: visibleCenterPx[0] }}>
+        <img src={A.icPin} alt="" />
+        <span>제주특별자치도</span>
+        <img src={A.icChevronRight} alt="" />
+        <span>{region.city}</span>
+        <img src={A.icChevronRight} alt="" />
+        <b>{region.name}</b>
+      </div>
 
       <div className="map-tools">
         <div className="map-tools__base">
@@ -404,7 +392,7 @@ export default function Dashboard() {
       </div>
 
       {/* 구간 정보 말풍선 (UC-GIS-009 기본 흐름 3) */}
-      {seg && segPx && tab === 'dashboard' && (island || seg.code === 'K-12') && (
+      {seg && segPx && tab === 'dashboard' && (
         <div className="seg-pop" style={{ left: segPx[0], top: segPx[1] }}>
           <span className="seg-pop__icon">
             <img src={A.icObserve} alt="" />
@@ -418,12 +406,6 @@ export default function Dashboard() {
             <dd><b style={{ color: RISK_COLOR[seg.risk] }}>{seg.risk}</b>{seg.refreeze && <em className="seg-pop__warn">재결빙 경고</em>}</dd>
           </dl>
           <button className="seg-pop__close" onClick={() => setSegCode(null)} aria-label="닫기">×</button>
-          {seg.road === '1100도로' && island && (
-            <div className="seg-pop__links">
-              <button onClick={() => changeMode('count')}>작업 횟수 보기</button>
-              <button onClick={() => changeMode('surface')}>노면 상태 보기</button>
-            </div>
-          )}
         </div>
       )}
 
@@ -486,19 +468,16 @@ export default function Dashboard() {
 
 // 노선 스타일 — 제설 작업 상태 / 작업 횟수 / 노면 상태
 function routeStyle(f, { mode }) {
-  const route = f.get('route')
-  const i = f.get('idx')
   if (mode === 'status') {
     return [
       new Style({ stroke: new Stroke({ color: 'rgba(255,255,255,0.9)', width: 8 }) }),
       new Style({ stroke: new Stroke({ color: STATE_LINE[f.get('state')], width: 5, lineCap: 'round' }) }),
     ]
   }
-  if (route !== DETAIL_ROUTE) return new Style({ stroke: new Stroke({ color: 'rgba(100,116,139,0.35)', width: 4 }) })
-  const color = mode === 'count' ? COUNT_COLORS[DETAIL_COUNTS[i]] : SURFACE_COLORS[DETAIL_SURFACE[i]]
+  const color = mode === 'count' ? COUNT_COLORS[f.get('count')] : SURFACE_COLORS[f.get('surface')]
   return [
-    new Style({ stroke: new Stroke({ color: '#fff', width: 13 }) }),
-    new Style({ stroke: new Stroke({ color, width: 8, lineCap: 'round' }) }),
+    new Style({ stroke: new Stroke({ color: 'rgba(255,255,255,0.9)', width: 8 }) }),
+    new Style({ stroke: new Stroke({ color, width: 5, lineCap: 'round' }) }),
   ]
 }
 
@@ -509,6 +488,7 @@ function trailStyle(f, { selectedMapId }) {
   return new Style({ stroke: new Stroke({ color: on ? '#37348f' : 'rgba(55,65,81,0.75)', width: on ? 5 : 3.5, lineDash: on ? undefined : [6, 6], lineCap: 'round' }) })
 }
 
+const zoomLevelOf = (mapRef) => mapRef.current?.getView().getZoom() ?? 10
 const fmtLength = (m) => (m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`)
 const fmtArea = (m2) => (m2 >= 1e6 ? `${(m2 / 1e6).toFixed(2)} km²` : `${Math.round(m2).toLocaleString()} m²`)
 
