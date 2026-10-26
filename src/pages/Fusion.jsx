@@ -65,7 +65,7 @@ export default function Fusion() {
   const response = [...RESPONSE].sort((a, b) => (sort === 'asc' ? 1 : -1) * (a[1] + a[2] - (b[1] + b[2])))
   const avg = (k) => RESPONSE.reduce((s, r) => s + r[k], 0) / RESPONSE.length
   // 교차 분석 지도 — 노선 라인(취약구간 노선 강조) · 차량 궤적(점선)
-  const { elRef, mapRef, tick, pixelOf } = useOlMap({
+  const { elRef, mapRef, tick, pixelOf, sizeOf } = useOlMap({
     center: JEJU_CENTER,
     zoom: 10,
     layers: () => {
@@ -106,6 +106,22 @@ export default function Fusion() {
   }, [stacked, mapRef])
   void tick
   const px = (r) => pixelOf(SEGMENTS_GEO[r.seg]) ?? [-999, -999]
+  // 상세 카드 위치 — 마커 기준 오프셋에 두되, 지도 보이는 영역(데스크톱은 오른쪽 분석 패널·아래 차트 제외) 밖으로 나가지 않게 고정
+  const CARD_H = 104
+  const GAP = 10
+  const [mw, mh] = sizeOf() ?? [1246, 919]
+  const bounds = stacked ? { right: mw - GAP, bottom: mh - GAP } : { right: mw - 326 - GAP, bottom: mh - 232 - GAP }
+  // 지도 보이는 영역이 좁으면 카드끼리 겹치므로 선택한 구간 카드만 표시
+  const compact = bounds.right < 760 || bounds.bottom < 460
+  const cardShown = (r) => !compact || sel === r.id
+  const cardPos = (r) => {
+    const p = px(r)
+    const w = sel === r.id ? 232 : r.card.w
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
+    const left = clamp(p[0] + r.card.dx, GAP, Math.max(GAP, bounds.right - w))
+    const top = clamp(p[1] + r.card.dy, GAP, Math.max(GAP, bounds.bottom - CARD_H))
+    return { left, top, w }
+  }
   const weak = [...ROADS].sort((a, b) => parseInt(b.pending.replace(/\D/g, ''), 10) - parseInt(a.pending.replace(/\D/g, ''), 10))
 
   return (
@@ -114,9 +130,12 @@ export default function Fusion() {
       <div ref={elRef} className="fusion__ol" />
       <div className="fusion__overlays">
         <svg className="fusion__links" width="100%" height="100%">
-          {ROADS.map((r) => {
+          {ROADS.filter(cardShown).map((r) => {
             const p = px(r)
-            return <line key={r.id} x1={p[0]} y1={p[1]} x2={p[0] + r.card.dx + r.card.w / 2} y2={p[1] + r.card.dy + (r.card.dy < 0 ? 96 : 0)} className={sel === r.id ? 'on' : ''} />
+            const c = cardPos(r)
+            const x2 = Math.max(c.left, Math.min(c.left + c.w, p[0]))
+            const y2 = c.top + CARD_H / 2 < p[1] ? c.top + CARD_H - 8 : c.top
+            return <line key={r.id} x1={p[0]} y1={p[1]} x2={x2} y2={y2} className={sel === r.id ? 'on' : ''} />
           })}
         </svg>
         {ROADS.filter((r) => r.vehicle).map((r) => {
@@ -142,8 +161,8 @@ export default function Fusion() {
             </button>
           )
         })}
-      {ROADS.map((r) => (
-        <button key={r.id} className={`fcard${sel === r.id ? ' on' : ''}`} style={{ left: px(r)[0] + r.card.dx, top: px(r)[1] + r.card.dy, width: sel === r.id ? 232 : r.card.w }} onClick={() => setSel((cur) => (cur === r.id ? null : r.id))}>
+      {ROADS.filter(cardShown).map((r) => (
+        <button key={r.id} className={`fcard${sel === r.id ? ' on' : ''}`} style={{ left: cardPos(r).left, top: cardPos(r).top, width: cardPos(r).w }} onClick={() => setSel((cur) => (cur === r.id ? null : r.id))}>
           <span className="fcard__head">
             <i style={{ background: r.hot ? '#f93c65' : '#fcbe2d' }}>{r.id}</i>
             <b>{r.name}</b>

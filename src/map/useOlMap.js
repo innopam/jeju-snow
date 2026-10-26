@@ -39,5 +39,6 @@ export function useOlMap({ center, zoom, layers }) {
   }, [])
 
   const pixelOf = (lonlat) => mapRef.current?.getPixelFromCoordinate(fromLonLat(lonlat)) ?? null
-  return { elRef, mapRef, tick, pixelOf }
+  const sizeOf = () => mapRef.current?.getSize() ?? null
+  return { elRef, mapRef, tick, pixelOf, sizeOf }
 }

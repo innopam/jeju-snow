@@ -12,7 +12,7 @@ import './layout.css'
 const MENU = [
   { to: '/', label: '통합 관제 대시보드', icon: A.icMenuDashboard },
   { to: '/stats', label: '통계', icon: A.icMenuChart },
-  { to: '/fusion', label: '제설 및 기상 융합 분석', icon: A.icMenuFusion },
+  { to: '/fusion', label: '기상·제설 융합 분석', icon: A.icMenuFusion },
 ]
 const REALTIME_INTERVAL = 45000 // 신규 위험 이벤트 수신 주기(목업)
 
