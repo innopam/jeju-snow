@@ -379,3 +379,8 @@
   .seg-pop { max-width: calc(100vw - 20px); }
   .measure-label { font-size: 11px; }
 }
+
+/* 카메라 팝업 이동 — 머리글을 끌어서 옮긴다 */
+.vpop__head { cursor: grab; touch-action: none; user-select: none; }
+.vpop__head:active { cursor: grabbing; }
+.vpop__head button { cursor: pointer; }
