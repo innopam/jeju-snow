@@ -102,6 +102,8 @@ export default function Layout() {
               <span className="role-tag">{session?.role}</span>
             </p>
           </div>
+          {/* 실시간 알림 바 — GNB 레이어 안에 두어 GNB 위로 겹쳐 보이고, 알림 패널보다는 아래 */}
+          {pathname === '/' && <RealtimeBanner alerts={alerts} onSelect={goToAlert} />}
           {alertFilter && (
             <AlertDropdown
               alerts={alerts}
@@ -113,7 +115,6 @@ export default function Layout() {
             />
           )}
         </header>
-        {pathname === '/' && <RealtimeBanner alerts={alerts} onSelect={goToAlert} />}
         <div className="content">
           <Outlet context={{ setToast, openAlerts }} />
         </div>
