@@ -12,7 +12,7 @@ import { A, VEHICLE_ICONS } from '../assets.js'
 import { Checkbox, Radio } from '../components/Controls.jsx'
 import { VEHICLES } from '../data/dashboard.js'
 import {
-  CCTV_GEO, COUNT_COLORS, JEJU_CENTER, ROUTES, SEGMENTS_GEO, SURFACE_COLORS,
+  CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SEGMENTS_GEO, SURFACE_COLORS,
   VEHICLES_GEO, WEATHER_GEO, nearestRegionGeo, vehicleTrack,
 } from '../data/geo.js'
 import { RISK_COLOR, SEGMENTS, STATE_COLOR, segName } from '../data/segments.js'
@@ -37,6 +37,8 @@ const LEGENDS = {
   count: { title: '제설 횟수', items: [0, 1, 2, 3, 4, 5].map((n) => [COUNT_COLORS[Math.min(n, 5)], n === 5 ? '5회 이상' : n ? `${n}회` : '미작업']) },
   surface: { title: '도로상태', items: Object.entries(SURFACE_COLORS).map(([k, c]) => [c, k]) },
 }
+const HAZARD_LAYER = '블랙아이스·적설·결빙 위험구간'
+const HAZARD_LEGEND = Object.entries(HAZARD_COLORS)
 const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
 const PANEL_DESKTOP = 380
 const mq = (q) => typeof window !== 'undefined' && window.matchMedia(q).matches
@@ -45,7 +47,7 @@ const segGeo = (s) => SEGMENTS_GEO[s.code]
 export default function Dashboard() {
   const { setToast } = useOutletContext()
   const location = useLocation()
-  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선', '재결빙 주의 구간']))
+  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선', '재결빙 주의 구간', HAZARD_LAYER]))
   const isMobile = useMedia(BP.mobile)
   const PANEL_W = isMobile ? 0 : PANEL_DESKTOP // 모바일은 하단 시트라 지도 가로를 가리지 않는다
   const [layerOpen, setLayerOpen] = useState(() => !mq(BP.mobile))
@@ -74,6 +76,7 @@ export default function Dashboard() {
       const base = createBaseLayers()
       const cadastral = createCadastralLayer()
       const routes = new VectorLayer({ source: new VectorSource(), style: (f) => routeStyle(f, live.current), updateWhileAnimating: true, updateWhileInteracting: true })
+      const hazards = new VectorLayer({ source: new VectorSource(), style: hazardStyle, updateWhileAnimating: true, updateWhileInteracting: true })
       const trails = new VectorLayer({ source: new VectorSource(), style: (f) => trailStyle(f, live.current) })
       const measureLayer = new VectorLayer({
         source: new VectorSource(),
@@ -87,6 +90,13 @@ export default function Dashboard() {
           routes.getSource().addFeature(f)
         }),
       )
+      // 위험구간 띠: 노선의 해당 구간(edge) 좌표를 이어 하나의 선으로
+      HAZARD_ZONES.forEach((z) => {
+        const r = ROUTES.find((x) => x.name === z.route)
+        const f = new Feature(new LineString(r.coords.slice(z.from, z.to + 2).map((c) => fromLonLat(c))))
+        f.setProperties({ hazard: z })
+        hazards.getSource().addFeature(f)
+      })
       // 차량 진행 궤적: 지나온 경로를 잘게 나눠 차량 쪽으로 갈수록 진해지게 그린다
       VEHICLES_GEO.forEach((v) => {
         splitPath(vehicleTrack(v).trail.map((c) => fromLonLat(c)), 12).forEach((seg, i, all) => {
@@ -95,17 +105,34 @@ export default function Dashboard() {
           trails.getSource().addFeature(f)
         })
       })
-      layerRefs.current = { base, cadastral, routes, trails, measureLayer }
-      return [...base.normal, ...(base.satellite ?? []), ...(cadastral ? [cadastral] : []), routes, trails, measureLayer]
+      layerRefs.current = { base, cadastral, routes, hazards, trails, measureLayer }
+      return [...base.normal, ...(base.satellite ?? []), ...(cadastral ? [cadastral] : []), routes, hazards, trails, measureLayer]
     },
   })
 
+  // 위험구간 띠 클릭 → 해당 구간 정보 팝업, 마우스를 올리면 포인터 커서
+  useEffect(() => {
+    const map = mapRef.current
+    const { hazards } = layerRefs.current
+    const hit = (pixel) => map.forEachFeatureAtPixel(pixel, (f) => f.get('hazard'), { layerFilter: (l) => l === hazards, hitTolerance: 4 })
+    const onClick = (e) => {
+      if (drawRef.current) return
+      const z = hit(e.pixel)
+      if (z) { setSegCode(z.seg); setTab('dashboard') }
+    }
+    const onMove = (e) => { if (!e.dragging) map.getTargetElement().style.cursor = !drawRef.current && hit(e.pixel) ? 'pointer' : '' }
+    map.on('singleclick', onClick)
+    map.on('pointermove', onMove)
+    return () => { map.un('singleclick', onClick); map.un('pointermove', onMove) }
+  }, [mapRef])
+
   // 레이어 표시 상태 동기화
   useEffect(() => {
-    const { base, cadastral, routes, trails } = layerRefs.current
+    const { base, cadastral, routes, hazards, trails } = layerRefs.current
     base.normal.forEach((l) => l.setVisible(basemap === 'normal' || !base.satellite))
     base.satellite?.forEach((l) => l.setVisible(basemap === 'satellite'))
     cadastral?.setVisible(layers.has('연속지적도'))
+    hazards.setVisible(layers.has(HAZARD_LAYER))
     routes.changed()
     trails.changed()
   }, [basemap, layers, tab, mode, selectedMapId])
@@ -262,7 +289,6 @@ export default function Dashboard() {
               aria-label={segName(s)}
             >
               {showLayer('재결빙 주의 구간') && s.refreeze && <i className="mk refreeze" />}
-              {showLayer('블랙아이스·적설·결빙 위험구간') && s.blackice && <em className="mk-tag ice">블랙아이스</em>}
               {showLayer('상습 결빙 구간') && s.habitual && <em className="mk-tag habitual">상습</em>}
             </button>
           )
@@ -439,6 +465,9 @@ export default function Dashboard() {
                 {l}
               </span>
             ))}
+            {showLayer(HAZARD_LAYER) && HAZARD_LEGEND.map(([l, c]) => (
+              <span key={l} className="legend__hazard"><i style={{ background: c }} />{l}</span>
+            ))}
           </div>
         )}
       </div>
@@ -494,6 +523,13 @@ function routeStyle(f, { mode }) {
     new Style({ stroke: new Stroke({ color, width: 5, lineCap: 'round' }) }),
   ]
 }
+
+// 블랙아이스·적설·결빙 위험구간 — 색 = 위험 유형, 굵기 = 위험 등급, 60% 투명도로 도로 라인 위에 겹침
+function hazardStyle(f) {
+  const z = f.get('hazard')
+  return new Style({ stroke: new Stroke({ color: hexA(HAZARD_COLORS[z.type], 0.6), width: HAZARD_WIDTH[z.grade], lineCap: 'round', lineJoin: 'round' }) })
+}
+const hexA = (hex, a) => `rgba(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(',')},${a})`
 
 // 차량 진행 궤적 — 차량 쪽으로 갈수록 진한 꼬리선, 선택 차량은 브랜드색으로 강조 (UI-SIRS-001-01·04)
 function trailStyle(f, { selectedMapId }) {

@@ -96,7 +96,7 @@
 .seg-pop dd { margin: 0; color: #222; white-space: nowrap; }
 
 /* 범례 */
-.legend { position: absolute; right: calc(var(--panel-w) + 16px); bottom: 19px; width: 104px; background: #fff; border-radius: 8px; padding: 12px 14px; z-index: 4; transition: right .25s; }
+.legend { position: absolute; right: calc(var(--panel-w) + 16px); bottom: 19px; width: 104px; max-height: calc(100% - 140px); overflow-y: auto; background: #fff; border-radius: 8px; padding: 12px 14px; z-index: 4; transition: right .25s; }
 .legend__head { width: 100%; display: flex; justify-content: space-between; align-items: center; }
 .legend__head b { font-size: 11px; color: #222; }
 .legend__head img { width: 18px; height: 18px; transition: transform .2s; }
@@ -106,6 +106,8 @@
 .legend__body span { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #555; }
 .legend__body i { width: 14px; height: 4px; border-radius: 2px; }
 .legend__body img { width: 14px; height: 4px; }
+.legend__body .legend__hazard { gap: 6px; font-size: 10px; color: #1f2024; }
+.legend__body .legend__hazard i { width: 16px; height: 8px; border-radius: 4px; opacity: .6; }
 
 /* 우측 패널 */
 .side-panel {
@@ -258,7 +260,6 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 50% { opacity: .45; } }
 .seg-dot .mk-tag { position: absolute; left: 14px; top: -16px; font-style: normal; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; white-space: nowrap; pointer-events: none; }
-.seg-dot .mk-tag.ice { background: #1d4ed8; color: #fff; }
 .seg-dot .mk-tag.habitual { background: #fff4d9; color: #dc7200; border: 1px solid #f5c26b; top: 10px; }
 
 /* 도로 위험 발생 가능성 · 권역별 */

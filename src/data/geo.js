@@ -61,6 +61,18 @@ export const ROUTES = [
 export const COUNT_COLORS = { 0: '#334155', 1: '#2563eb', 2: '#f97316', 3: '#0d9488', 4: '#7e22ce', 5: '#ef233c' }
 export const SURFACE_COLORS = { 오류: '#334155', 건조: '#22c55e', 습기: '#60a5fa', 젖음: '#1d4ed8', 적설: '#ec4899', 아이스: '#ef4444', 슬러시: '#f97316' }
 
+// 블랙아이스·적설·결빙 위험구간 (UI-SIRS-001-006) — 도로 라인 위 반투명 띠: 색 = 위험 유형, 굵기 = 위험 등급
+// from·to 는 노선 coords 의 구간(edge) 번호 범위
+export const HAZARD_COLORS = { 블랙아이스: '#6d28d9', 적설: '#0ea5e9', 결빙: '#1447e6' }
+export const HAZARD_WIDTH = { 심각: 16, 경계: 12, 주의: 8 }
+export const HAZARD_ZONES = [
+  { route: '1100도로', from: 1, to: 3, type: '블랙아이스', grade: '심각', action: '미조치', seg: 'K-12', place: 'K-12 성판악' },
+  { route: '5·16도로', from: 1, to: 3, type: '적설', grade: '경계', action: '조치중', seg: 'K-16-2', place: '교래' },
+  { route: '평화로', from: 1, to: 3, type: '결빙', grade: '경계', action: '미조치', seg: 'P-2', place: '광령' },
+  { route: '번영로', from: 0, to: 1, type: '결빙', grade: '주의', action: '조치중', seg: 'B-4', place: '대천' },
+  { route: '산록도로', from: 1, to: 2, type: '적설', grade: '주의', action: '미조치', seg: 'S-1', place: '안덕' },
+]
+
 // 구간 정보 (UC-GIS-009) — 코드·명칭은 시안 기준
 export const SEGMENTS_GEO = {
   'K-12': [126.491, 33.406],
