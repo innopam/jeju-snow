@@ -86,7 +86,7 @@
 
 /* 구간 정보 팝업 */
 .seg-pop {
-  position: absolute; transform: translate(-50%, 18px); flex-wrap: wrap; display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border-radius: 12px;
+  position: absolute; transform: translate(-50%, 18px); flex-wrap: wrap; display: flex; align-items: flex-start; gap: 5px 12px; padding: 12px; width: 298px; background: #fff; border-radius: 12px;
   border: 1px solid rgba(0,0,0,.08); filter: drop-shadow(0 4px 8px rgba(0,0,0,.1)); z-index: 3;
 }
 .seg-pop__icon { width: 44px; height: 44px; border-radius: 10px; background: #f2f2fa; display: grid; place-items: center; }
@@ -162,14 +162,6 @@
 .mini-cards span { font-size: 10px; color: #777; }
 .mini-cards span.muted { color: #999; }
 
-.sensor-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden; font-size: 11px; }
-.sensor-table th { background: #f5f6fa; color: #777; font-weight: 500; height: 28px; }
-.sensor-table td { height: 28px; text-align: center; border-top: 1px solid #e4e7ec; }
-.sensor-table th:first-child, .sensor-table td:first-child { text-align: left; padding-left: 12px; width: 106px; font-weight: 500; }
-.sensor-table td.warn { color: #bb4d00; font-weight: 700; }
-.sensor-table td.err { color: #e7000b; font-weight: 700; }
-.sensor-table td.zero { color: #999; }
-.sensor-table tr.sum td { background: #f5f6fa; }
 
 .daily { position: relative; height: 80px; margin-left: 24px; }
 .daily__grid { position: absolute; left: 0; right: 0; height: 1px; background: #eee; }
@@ -191,10 +183,6 @@
 .recent span { flex: 1; color: #555; }
 
 /* 제설 차량 현황 */
-.device-alert { display: flex; align-items: center; gap: 8px; background: #ffe7e8; border-radius: 8px; padding: 9px 12px; color: #d92338; font-size: 13px; }
-.device-alert img { width: 6px; height: 6px; }
-.device-alert span { flex: 1; text-align: left; font-weight: 500; }
-.device-alert em { font-style: normal; }
 .vp__list-sec { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
 .search--sm { height: 34px; }
 .search--sm img { width: 18px; height: 18px; }
@@ -273,6 +261,28 @@
 .seg-dot .mk-tag.ice { background: #1d4ed8; color: #fff; }
 .seg-dot .mk-tag.habitual { background: #fff4d9; color: #dc7200; border: 1px solid #f5c26b; top: 10px; }
 
+/* 도로 위험 발생 가능성 · 권역별 */
+.risk-card { margin-top: 10px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; }
+.risk-card__head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 500; color: #777; }
+.risk-card__total { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 400; }
+.risk-card__row { display: grid; grid-template-columns: minmax(0, 112px) 44px minmax(0, 88px) 47px; gap: 8px; align-items: center; font-size: 12px; font-weight: 500; color: #222; }
+.risk-card__row--th { padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; font-size: 10px; color: #777; }
+.risk-card__row .cold { color: #2f6fe4; }
+.risk-card__name { display: flex; flex-direction: column; line-height: 1.4; white-space: nowrap; overflow: hidden; }
+.risk-card__name b { font-weight: 500; font-size: 12px; }
+.risk-card__name small { font-size: 10px; font-weight: 400; color: #777; }
+.risk-card__prob { display: flex; align-items: center; gap: 6px; }
+.risk-card__prob > i { position: relative; width: 54px; height: 6px; border-radius: 3px; background: #eef0f3; overflow: hidden; flex: none; }
+.risk-card__prob > i > i { position: absolute; left: 0; top: 0; height: 6px; border-radius: 3px; }
+.risk-card__prob b { font-size: 11px; }
+.grade-badge { font-style: normal; font-size: 11px; font-weight: 700; line-height: 1.4; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.seg-pop__hazard { color: #3e3e3e; }
+.seg-pop__refreeze { width: 100%; display: flex; align-items: center; gap: 13px; padding: 2px 10px 2px 16px; background: #fff5f7; border: 1px solid #ffd2db; border-radius: 8px; font-size: 11px; }
+.seg-pop__refreeze > b { color: #e11d48; white-space: nowrap; }
+.seg-pop__refreeze p { margin: 0; display: flex; flex-direction: column; gap: 3px; padding: 2px 0; color: #999; white-space: nowrap; }
+.seg-pop__refreeze em { font-style: normal; font-weight: 700; }
+.seg-pop__refreeze em.cold { color: #2563eb; }
+.seg-pop__refreeze em.hot { color: #e11d48; }
 .seg-pop__warn { font-style: normal; margin-left: 6px; font-size: 10px; font-weight: 700; color: #fff; background: #f93c65; padding: 1px 5px; border-radius: 3px; }
 .seg-pop__close { position: absolute; right: 8px; top: 4px; font-size: 16px; color: #999; line-height: 1; }
 .seg-pop__links { width: 100%; display: flex; gap: 6px; border-top: 1px solid #eee; padding-top: 8px; }
@@ -296,7 +306,6 @@
 .route-head span { color: #777; font-size: 12px; }
 .route-head button { height: 26px; padding: 0 10px; border-radius: 4px; background: #37348f; color: #fff; font-size: 12px; font-weight: 700; }
 .layer-empty { font-size: 12px; color: #999; }
-.device-alert.on { outline: 2px solid #d92338; }
 .recent button { flex: 1; text-align: left; color: #555; font-size: 12px; }
 .recent button:hover { color: #37348f; text-decoration: underline; }
 

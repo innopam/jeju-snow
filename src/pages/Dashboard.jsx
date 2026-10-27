@@ -26,7 +26,7 @@ import './dashboard.css'
 
 // UI-SIRS-001-01 ~ 04 통합 관제 대시보드 — OpenLayers + K-Geo플랫폼(브이월드) 배경지도
 const BASE_LAYERS = ['기상정보', '연속지적도', '적설 감시 CCTV']
-const SECTION_LAYERS = ['주요 교통량 축', '제설 우선노선', '상습 결빙/파손 구간', '재결빙 위험 구간', '블랙아이스 및 위험구간']
+const SECTION_LAYERS = ['주요 교통량 축', '제설 우선노선', '상습 결빙 구간', '재결빙 주의 구간', '블랙아이스·적설·결빙 위험구간']
 const MODES = [
   { key: 'status', label: '제설 작업 상태' },
   { key: 'count', label: '제설 작업 횟수' },
@@ -34,7 +34,7 @@ const MODES = [
 ]
 const LEGENDS = {
   status: { title: '구간', items: [['#f93c65', '미작업'], ['#ff8a3d', '제설 필요'], ['#fcbe2d', '진행'], ['#00b69b', '완료'], [null, '재결빙 주의']] },
-  count: { title: '제설 횟수', items: [0, 1, 2, 3, 4].map((n) => [COUNT_COLORS[n], n ? `${n}회` : '미작업']) },
+  count: { title: '제설 횟수', items: [0, 1, 2, 3, 4, 5].map((n) => [COUNT_COLORS[Math.min(n, 5)], n === 5 ? '5회 이상' : n ? `${n}회` : '미작업']) },
   surface: { title: '도로상태', items: Object.entries(SURFACE_COLORS).map(([k, c]) => [c, k]) },
 }
 const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
@@ -45,7 +45,7 @@ const segGeo = (s) => SEGMENTS_GEO[s.code]
 export default function Dashboard() {
   const { setToast } = useOutletContext()
   const location = useLocation()
-  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선', '재결빙 위험 구간']))
+  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선', '재결빙 주의 구간']))
   const isMobile = useMedia(BP.mobile)
   const PANEL_W = isMobile ? 0 : PANEL_DESKTOP // 모바일은 하단 시트라 지도 가로를 가리지 않는다
   const [layerOpen, setLayerOpen] = useState(() => !mq(BP.mobile))
@@ -74,7 +74,7 @@ export default function Dashboard() {
       const base = createBaseLayers()
       const cadastral = createCadastralLayer()
       const routes = new VectorLayer({ source: new VectorSource(), style: (f) => routeStyle(f, live.current), updateWhileAnimating: true, updateWhileInteracting: true })
-      const trails = new VectorLayer({ source: new VectorSource(), style: (f) => trailStyle(f, live.current), visible: false })
+      const trails = new VectorLayer({ source: new VectorSource(), style: (f) => trailStyle(f, live.current) })
       const measureLayer = new VectorLayer({
         source: new VectorSource(),
         style: new Style({ stroke: new Stroke({ color: '#37348f', width: 2.5, lineDash: [6, 4] }), fill: new Fill({ color: 'rgba(55,52,143,0.15)' }), image: new CircleStyle({ radius: 4, fill: new Fill({ color: '#fff' }), stroke: new Stroke({ color: '#37348f', width: 2 }) }) }),
@@ -87,10 +87,13 @@ export default function Dashboard() {
           routes.getSource().addFeature(f)
         }),
       )
+      // 차량 진행 궤적: 지나온 경로를 잘게 나눠 차량 쪽으로 갈수록 진해지게 그린다
       VEHICLES_GEO.forEach((v) => {
-        const f = new Feature(new LineString(vehicleTrack(v).trail.map((c) => fromLonLat(c))))
-        f.set('vehicle', v.id)
-        trails.getSource().addFeature(f)
+        splitPath(vehicleTrack(v).trail.map((c) => fromLonLat(c)), 12).forEach((seg, i, all) => {
+          const f = new Feature(new LineString(seg))
+          f.setProperties({ vehicle: v.id, fade: (i + 1) / all.length })
+          trails.getSource().addFeature(f)
+        })
       })
       layerRefs.current = { base, cadastral, routes, trails, measureLayer }
       return [...base.normal, ...(base.satellite ?? []), ...(cadastral ? [cadastral] : []), routes, trails, measureLayer]
@@ -103,7 +106,6 @@ export default function Dashboard() {
     base.normal.forEach((l) => l.setVisible(basemap === 'normal' || !base.satellite))
     base.satellite?.forEach((l) => l.setVisible(basemap === 'satellite'))
     cadastral?.setVisible(layers.has('연속지적도'))
-    trails.setVisible(tab === 'vehicles')
     routes.changed()
     trails.changed()
   }, [basemap, layers, tab, mode, selectedMapId])
@@ -259,9 +261,9 @@ export default function Dashboard() {
               title={`${segName(s)} · ${s.state}`}
               aria-label={segName(s)}
             >
-              {showLayer('재결빙 위험 구간') && s.refreeze && <i className="mk refreeze" />}
-              {showLayer('블랙아이스 및 위험구간') && s.blackice && <em className="mk-tag ice">블랙아이스</em>}
-              {showLayer('상습 결빙/파손 구간') && s.habitual && <em className="mk-tag habitual">상습</em>}
+              {showLayer('재결빙 주의 구간') && s.refreeze && <i className="mk refreeze" />}
+              {showLayer('블랙아이스·적설·결빙 위험구간') && s.blackice && <em className="mk-tag ice">블랙아이스</em>}
+              {showLayer('상습 결빙 구간') && s.habitual && <em className="mk-tag habitual">상습</em>}
             </button>
           )
         })}
@@ -270,7 +272,7 @@ export default function Dashboard() {
           const p = px([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])
           const n = r.counts[i]
           const sf = r.surface[i]
-          const color = mode === 'count' ? COUNT_COLORS[n] : SURFACE_COLORS[sf]
+          const color = mode === 'count' ? COUNT_COLORS[Math.min(n, 5)] : SURFACE_COLORS[sf]
           return (
             <span key={`${r.name}-${i}`} className="count-label" style={{ left: p[0] + 10, top: p[1] - 9, color, borderColor: color }} title={`${r.name} ${i + 1}구간 · 제설 ${n}회 · 노면 ${sf}`}>
               {mode === 'count' ? (n ? `${n}회` : '미작업') : sf}
@@ -403,9 +405,21 @@ export default function Dashboard() {
             <dt>제설 상태</dt>
             <dd><b style={{ color: STATE_COLOR[seg.state] }}>{seg.state}</b></dd>
             <dt>재결빙 위험</dt>
-            <dd><b style={{ color: RISK_COLOR[seg.risk] }}>{seg.risk}</b>{seg.refreeze && <em className="seg-pop__warn">재결빙 경고</em>}</dd>
+            <dd><b style={{ color: RISK_COLOR[seg.risk] }}>{seg.risk}</b></dd>
+            <dt>위험요소</dt>
+            <dd><b className="seg-pop__hazard">{seg.hazard}</b></dd>
           </dl>
           <button className="seg-pop__close" onClick={() => setSegCode(null)} aria-label="닫기">×</button>
+          {/* 재결빙 위험 구간이면 판정 근거(노면온도 · 제설제 잔류)를 함께 표시 */}
+          {seg.refreeze && (
+            <div className="seg-pop__refreeze">
+              <b>재결빙 위험 구간</b>
+              <p>
+                <span>노면온도 <em className="cold">{seg.roadTemp}</em> ℃</span>
+                <span>제설제 잔류 <em className="hot">{seg.residue}</em> %</span>
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -474,18 +488,39 @@ function routeStyle(f, { mode }) {
       new Style({ stroke: new Stroke({ color: STATE_LINE[f.get('state')], width: 5, lineCap: 'round' }) }),
     ]
   }
-  const color = mode === 'count' ? COUNT_COLORS[f.get('count')] : SURFACE_COLORS[f.get('surface')]
+  const color = mode === 'count' ? COUNT_COLORS[Math.min(f.get('count'), 5)] : SURFACE_COLORS[f.get('surface')]
   return [
     new Style({ stroke: new Stroke({ color: 'rgba(255,255,255,0.9)', width: 8 }) }),
     new Style({ stroke: new Stroke({ color, width: 5, lineCap: 'round' }) }),
   ]
 }
 
-// 차량 진행 궤적 — 선택 차량 강조 (UI-SIRS-001-04)
+// 차량 진행 궤적 — 차량 쪽으로 갈수록 진한 꼬리선, 선택 차량은 브랜드색으로 강조 (UI-SIRS-001-01·04)
 function trailStyle(f, { selectedMapId }) {
+  const t = f.get('fade')
   const on = f.get('vehicle') === selectedMapId
-  if (selectedMapId && !on) return new Style({ stroke: new Stroke({ color: 'rgba(55,65,81,0.25)', width: 3, lineDash: [4, 6] }) })
-  return new Style({ stroke: new Stroke({ color: on ? '#37348f' : 'rgba(55,65,81,0.75)', width: on ? 5 : 3.5, lineDash: on ? undefined : [6, 6], lineCap: 'round' }) })
+  const dim = selectedMapId && !on
+  const alpha = (dim ? 0.25 : 0.9) * (0.1 + 0.9 * t)
+  return new Style({ stroke: new Stroke({ color: on ? `rgba(55,52,143,${0.2 + 0.8 * t})` : `rgba(31,33,64,${alpha})`, width: on ? 6 : 5, lineCap: 'round' }) })
+}
+
+// 경로(투영 좌표)를 길이 기준 n 조각으로 나눈다
+function splitPath(pts, n) {
+  const lens = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]))
+  const total = lens.reduce((a, b) => a + b, 0)
+  const at = (d) => {
+    let i = 0
+    while (i < lens.length - 1 && d > lens[i]) d -= lens[i++]
+    const k = lens[i] ? Math.min(1, d / lens[i]) : 0
+    return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * k, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * k]
+  }
+  return Array.from({ length: n }, (_, j) => {
+    const a = (total * j) / n
+    const b = (total * (j + 1)) / n
+    let acc = 0
+    const mid = pts.slice(1, -1).filter((_, i) => { acc += lens[i]; return acc > a && acc < b })
+    return [at(a), ...mid, at(b)]
+  })
 }
 
 const zoomLevelOf = (mapRef) => mapRef.current?.getView().getZoom() ?? 10

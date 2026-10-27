@@ -12,13 +12,11 @@ const STATUS_SPLIT = [
   { key: 'done', label: '종료', color: '#9198a5' },
 ]
 const STATUS_ORDER = { working: 0, standby: 1, done: 2 }
-const isAbnormal = (v) => v.battery <= 20 || v.delayed // 단말 이상: 배터리 20% 이하·수신 지연
 
 export default function VehiclePanel({ selected, onSelect }) {
   const [jur, setJur] = useState('전체')
   const [type, setType] = useState('전체')
   const [status, setStatus] = useState(null)
-  const [abnormal, setAbnormal] = useState(false)
   const [query, setQuery] = useState('')
 
   const inJur = useMemo(() => VEHICLES.map((v, i) => ({ ...v, i })).filter((v) => jur === '전체' || v.jur === jur), [jur])
@@ -29,14 +27,11 @@ export default function VehiclePanel({ selected, onSelect }) {
           (v) =>
             (type === '전체' || v.type === type) &&
             (!status || v.status === status) &&
-            (!abnormal || isAbnormal(v)) &&
             (!query.trim() || v.name.includes(query.trim()) || v.info.includes(query.trim())),
         )
         .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]),
-    [inJur, type, status, abnormal, query],
+    [inJur, type, status, query],
   )
-  const lowBattery = inJur.filter((v) => v.battery <= 20).length
-  const delayed = inJur.filter((v) => v.delayed).length
 
   return (
     <div className="vp">
@@ -52,13 +47,6 @@ export default function VehiclePanel({ selected, onSelect }) {
           </button>
         ))}
       </div>
-      {lowBattery + delayed > 0 && (
-        <button className={`device-alert${abnormal ? ' on' : ''}`} onClick={() => setAbnormal((a) => !a)} aria-pressed={abnormal}>
-          <img src={A.alertDot} alt="" />
-          <span>배터리 부족 {lowBattery}대 · 통신 지연 {delayed}대</span>
-          <em>{abnormal ? '전체 보기 ›' : '목록 보기 ›'}</em>
-        </button>
-      )}
 
       <hr />
       <div className="vp__list-sec">

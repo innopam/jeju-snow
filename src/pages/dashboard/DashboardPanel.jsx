@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { Dropdown } from '../../components/Controls.jsx'
 import {
-  ACTION_BADGE, HAZARD_DAILY, HAZARD_LABELS, HAZARD_RECENT, JURISDICTIONS, JUR_DATA, SENSOR_TYPES, SNOW_STATUS_KEYS, weatherAt,
+  ACTION_BADGE, HAZARD_DAILY, HAZARD_LABELS, HAZARD_RECENT, JURISDICTIONS, JUR_DATA, REGION_RISK, RISK_GRADE, SNOW_STATUS_KEYS, weatherAt,
 } from '../../data/dashboard.js'
 
 // 재결빙 위험 '지도 보기' 대상 구간 (관할별 최우선 구간)
@@ -15,11 +15,7 @@ export default function DashboardPanel({ region, onShowSegment }) {
   const d = JUR_DATA[jur]
   const total = d.status.reduce((s, n) => s + n, 0)
   const done = d.status[3]
-  const sensorRows = SENSOR_TYPES.map((type, i) => {
-    const [t, ok, bad, miss] = d.sensors[i]
-    return { type, total: t, ok, bad, miss }
-  })
-  const sum = sensorRows.reduce((s, r) => ({ total: s.total + r.total, ok: s.ok + r.ok, bad: s.bad + r.bad, miss: s.miss + r.miss }), { total: 0, ok: 0, bad: 0, miss: 0 })
+  const risk = REGION_RISK[jur]
   const recent = HAZARD_RECENT.filter((r) => jur === '전체' || r.jur === jur).slice(0, 3)
   const scale = jur === '전체' ? 1 : d.hazards.reduce((s, h) => s + h[0], 0) / JUR_DATA.전체.hazards.reduce((s, h) => s + h[0], 0)
 
@@ -68,7 +64,7 @@ export default function DashboardPanel({ region, onShowSegment }) {
       <div className="dp__sec">
         <div className="dp__head">
           <p className="section-title">기상 현황</p>
-          <small>{region} · 10:30 발표</small>
+          <small>{region} · 현재</small>
         </div>
         <div className="mini-cards">
           {weatherAt(region).map((w) => (
@@ -78,30 +74,27 @@ export default function DashboardPanel({ region, onShowSegment }) {
             </div>
           ))}
         </div>
-      </div>
-
-      <hr />
-      <div className="dp__sec">
-        <div className="dp__head">
-          <p className="section-title">센서 데이터</p>
-          <small>3종 · {sum.total}대</small>
+        {/* 도로 위험 발생 가능성 · 권역별 */}
+        <div className="risk-card">
+          <div className="risk-card__head">
+            <span>도로 위험 발생 가능성 · 권역별</span>
+            <span className="risk-card__total">종합 <GradeBadge grade={risk.total.grade}>{risk.total.grade} {risk.total.prob}%</GradeBadge></span>
+          </div>
+          <div className="risk-card__row risk-card__row--th">
+            <span>권역</span><span>기온</span><span>가능성</span><span>등급</span>
+          </div>
+          {risk.rows.map((r) => (
+            <div key={r.name} className="risk-card__row">
+              <span className="risk-card__name"><b>{r.name}</b><small>{r.sub}</small></span>
+              <span className={r.temp < 0 ? 'cold' : ''}>{r.temp.toFixed(1)}℃</span>
+              <span className="risk-card__prob">
+                <i><i style={{ width: `${r.prob}%`, background: RISK_GRADE[r.grade].bar }} /></i>
+                <b>{r.prob}%</b>
+              </span>
+              <span><GradeBadge grade={r.grade}>{r.grade}</GradeBadge></span>
+            </div>
+          ))}
         </div>
-        <table className="sensor-table">
-          <thead>
-            <tr><th>센서 유형</th><th>전체</th><th>정상</th><th>이상</th><th>미수신</th></tr>
-          </thead>
-          <tbody>
-            {[...sensorRows, { type: '합계', ...sum }].map((r) => (
-              <tr key={r.type} className={r.type === '합계' ? 'sum' : ''}>
-                <td>{r.type}</td>
-                <td>{r.total}</td>
-                <td>{r.ok}</td>
-                <td className={r.bad ? 'warn' : 'zero'}>{r.bad}</td>
-                <td className={r.miss ? 'err' : 'zero'}>{r.miss}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
 
       <hr />
@@ -136,6 +129,11 @@ export default function DashboardPanel({ region, onShowSegment }) {
       </div>
     </div>
   )
+}
+
+function GradeBadge({ grade, children }) {
+  const c = RISK_GRADE[grade]
+  return <em className="grade-badge" style={{ color: c.text, background: c.bg }}>{children}</em>
 }
 
 function DailyBars({ scale }) {

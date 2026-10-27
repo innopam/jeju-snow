@@ -13,20 +13,19 @@ export const JURISDICTIONS = ['전체', '도청', '제주시', '서귀포시']
 export const JUR_DATA = {
   도청: {
     status: [1, 2, 3, 8], refreeze: 3, refreezeTop: 'K-12 1100도로 · 10:40 재결빙 예상', missing: 3, missingTop: '5·16도로 교래 · 위험 발생 후 4h 미조치',
-    sensors: [[12, 11, 1, 0], [6, 6, 0, 0], [12, 11, 0, 1]], hazards: [[4, 1], [3, 2], [4, 2]],
+    hazards: [[4, 1], [3, 2], [4, 2]],
   },
   제주시: {
     status: [1, 1, 1, 5], refreeze: 1, refreezeTop: 'B-4 번영로 · 11:10 재결빙 예상', missing: 2, missingTop: '비자림로 송당 · 위험 발생 후 6h 미조치',
-    sensors: [[7, 6, 1, 0], [4, 3, 1, 0], [7, 7, 0, 0]], hazards: [[2, 1], [2, 1], [3, 1]],
+    hazards: [[2, 1], [2, 1], [3, 1]],
   },
   서귀포시: {
     status: [0, 0, 1, 3], refreeze: 1, refreezeTop: 'N-3 남조로 · 11:30 재결빙 예상', missing: 1, missingTop: '남조로 수망 · 위험 발생 후 2h 미조치',
-    sensors: [[5, 4, 0, 1], [2, 2, 0, 0], [5, 5, 0, 0]], hazards: [[2, 1], [2, 1], [2, 1]],
+    hazards: [[2, 1], [2, 1], [2, 1]],
   },
 }
 JUR_DATA.전체 = {
   status: [2, 3, 5, 16], refreeze: 5, refreezeTop: 'K-12 1100도로 · 10:40 재결빙 예상', missing: 6, missingTop: '5·16도로 교래 · 위험 발생 후 4h 미조치',
-  sensors: [0, 1, 2].map((i) => [0, 1, 2, 3].map((k) => ['도청', '제주시', '서귀포시'].reduce((s, j) => s + JUR_DATA[j].sensors[i][k], 0))),
   hazards: [0, 1, 2].map((i) => [0, 1].map((k) => ['도청', '제주시', '서귀포시'].reduce((s, j) => s + JUR_DATA[j].hazards[i][k], 0))),
 }
 
@@ -43,7 +42,25 @@ export function weatherAt(region) {
   ]
 }
 
-export const SENSOR_TYPES = ['노면 센서', '제설제 농도', '제설차량 단말']
+// 도로 위험 발생 가능성 · 권역별 (관할 선택과 연동)
+export const RISK_GRADE = {
+  심각: { bar: '#f93c65', text: '#f93c65', bg: 'rgba(249,60,101,0.16)' },
+  경계: { bar: '#ff8a3d', text: '#e0661a', bg: 'rgba(255,138,61,0.16)' },
+  주의: { bar: '#fcbe2d', text: '#b7791f', bg: 'rgba(252,190,45,0.2)' },
+}
+const RISK_ROWS = {
+  hallasan: { name: '한라산·중산간', sub: '1100·5·16도로', temp: -4.6, prob: 86, grade: '심각' },
+  jejuW: { name: '제주시 서부', sub: '애월·한림', temp: -0.5, prob: 68, grade: '경계' },
+  jejuE: { name: '제주시 동부', sub: '조천·구좌', temp: 0.4, prob: 52, grade: '주의' },
+  segwiW: { name: '서귀포시 서부', sub: '안덕·대정', temp: 0.3, prob: 48, grade: '주의' },
+  segwiE: { name: '서귀포시 동부', sub: '남원·표선', temp: 0.9, prob: 41, grade: '주의' },
+}
+export const REGION_RISK = {
+  전체: { total: { grade: '경계', prob: 64 }, rows: [RISK_ROWS.hallasan, RISK_ROWS.jejuW] },
+  도청: { total: { grade: '심각', prob: 77 }, rows: [RISK_ROWS.hallasan, RISK_ROWS.jejuW] },
+  제주시: { total: { grade: '경계', prob: 60 }, rows: [RISK_ROWS.jejuW, RISK_ROWS.jejuE] },
+  서귀포시: { total: { grade: '주의', prob: 45 }, rows: [RISK_ROWS.segwiW, RISK_ROWS.segwiE] },
+}
 export const HAZARD_LABELS = ['블랙아이스', '적설', '결빙']
 
 // 최근 7일 조치 (완료/미완료)
