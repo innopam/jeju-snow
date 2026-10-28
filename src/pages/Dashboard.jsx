@@ -51,7 +51,7 @@ const segGeo = segAt
 export default function Dashboard() {
   const { setToast } = useOutletContext()
   const location = useLocation()
-  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선', '재결빙 주의 구간']))
+  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '재결빙 주의 구간'])) // 구간 외 레이어(교통량 축·우선노선·위험구간)는 켤 때 범례와 함께 표시
   const isMobile = useMedia(BP.mobile)
   const PANEL_W = isMobile ? 0 : PANEL_DESKTOP // 모바일은 하단 시트라 지도 가로를 가리지 않는다
   const [layerOpen, setLayerOpen] = useState(() => !mq(BP.mobile))
@@ -526,6 +526,7 @@ export default function Dashboard() {
                 <span className="legend__priority"><i className="end" />노선 끝점</span>
               </>
             )}
+            {showLayer(HAZARD_LAYER) && <p>위험구간</p>}
             {showLayer(HAZARD_LAYER) && HAZARD_LEGEND.map(([l, c]) => (
               <span key={l} className="legend__hazard"><i style={{ background: c }} />{l}</span>
             ))}
