@@ -204,7 +204,6 @@ const inRings = (rings, [x, y]) => {
     }
   return inside
 }
-const HALLASAN = [126.533, 33.362]
 export function regionAtGeo(lonlat) {
   let hit = ADM_DONG.find((d) => d.rings.some((poly) => inRings(poly, lonlat)))
   if (!hit) {
@@ -216,9 +215,7 @@ export function regionAtGeo(lonlat) {
           if (dd < bestD) [bestD, hit] = [dd, d]
         }
   }
-  // 한라산 정상부(약 5km 이내)는 기상 현황을 산악 기준으로 보여 준다
-  const mountain = (lonlat[0] - HALLASAN[0]) ** 2 + ((lonlat[1] - HALLASAN[1]) * 1.2) ** 2 < 0.05 ** 2
-  return { city: hit.city, name: hit.name, mountain }
+  return { city: hit.city, name: hit.name }
 }
 
 // 행정동 경계(가장 큰 외곽선)의 범위 중심 — 위험구간 목록에서 지도 이동 위치로 쓴다

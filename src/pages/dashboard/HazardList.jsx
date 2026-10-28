@@ -4,12 +4,17 @@ import { Dropdown } from '../../components/Controls.jsx'
 import { HAZARD_GRADE_STYLE, HAZARD_GRADES, HAZARD_LIST } from '../../data/dashboard.js'
 import { HAZARD_COLORS } from '../../data/geo.js'
 
+const GRADE_OPTIONS = ['등급 전체', ...HAZARD_GRADES]
+const TYPE_OPTIONS = ['위험요소 전체', '결빙', '적설', '블랙아이스']
 const JUR_OPTIONS = ['관할 전체', '제주시', '서귀포시']
+// 위험요소 글자색 (적설은 띠 색보다 진하게)
+const TYPE_TEXT = { ...HAZARD_COLORS, 적설: '#0284c7' }
 const countBy = (rows) => HAZARD_GRADES.map((g) => rows.filter((r) => r.grade === g).length)
 
 // 위험구간 목록 (GIS-003) — 등급·관할·검색으로 거르고, 읍면동 묶음별로 접고 편다
 export default function HazardList({ onShowPlace }) {
-  const [grade, setGrade] = useState('전체')
+  const [grade, setGrade] = useState('등급 전체')
+  const [type, setType] = useState('위험요소 전체')
   const [jur, setJur] = useState('관할 전체')
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(() => new Set([HAZARD_LIST[0].name]))
@@ -17,11 +22,17 @@ export default function HazardList({ onShowPlace }) {
 
   const q = query.trim()
   const inJur = HAZARD_LIST.filter((g) => jur === '관할 전체' || g.jur === jur)
-    .map((g) => ({ ...g, rows: g.rows.filter((r) => !q || r.road.includes(q) || r.dong.includes(q) || g.name.includes(q)) }))
-  const gradeCounts = countBy(inJur.flatMap((g) => g.rows))
-  const total = gradeCounts.reduce((s, n) => s + n, 0)
+  const total = inJur.reduce((s, g) => s + g.rows.length, 0)
   const groups = inJur
-    .map((g) => ({ ...g, rows: g.rows.filter((r) => grade === '전체' || r.grade === grade) }))
+    .map((g) => ({
+      ...g,
+      rows: g.rows.filter(
+        (r) =>
+          (grade === '등급 전체' || r.grade === grade) &&
+          (type === '위험요소 전체' || r.type === type) &&
+          (!q || r.road.includes(q) || r.dong.includes(q) || g.name.includes(q)),
+      ),
+    }))
     .filter((g) => g.rows.length > 0)
   const shown = groups.reduce((s, g) => s + g.rows.length, 0)
   const allOpen = groups.length > 0 && groups.every((g) => open.has(g.name))
@@ -39,28 +50,18 @@ export default function HazardList({ onShowPlace }) {
         <p className="section-title">위험구간 목록</p>
         <small>총 <b>{total}</b> 구간 · 기상청 실황</small>
       </div>
-      <div className="hz-chips">
-        <button className={grade === '전체' ? 'on' : ''} onClick={() => setGrade('전체')}>
-          <b>전체</b><span>{total}</span>
-        </button>
-        {HAZARD_GRADES.map((g, i) => (
-          <button key={g} className={grade === g ? 'on' : ''} onClick={() => setGrade(grade === g ? '전체' : g)}>
-            <img src={HAZARD_GRADE_STYLE[g].dot} alt="" />
-            <span>{g}</span>
-            <b style={{ color: HAZARD_GRADE_STYLE[g].text }}>{gradeCounts[i]}</b>
-          </button>
-        ))}
-      </div>
       <div className="hz-tools">
-        <label className="hz-search">
-          <img src={A.icSearch14} alt="" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="도로명·읍면동 검색" />
-        </label>
+        <Dropdown value={grade} options={GRADE_OPTIONS} onChange={setGrade} className="dropdown--sm" icon={A.icChevronDown12} />
+        <Dropdown value={type} options={TYPE_OPTIONS} onChange={setType} className="dropdown--sm" icon={A.icChevronDown12} />
         <Dropdown value={jur} options={JUR_OPTIONS} onChange={setJur} className="dropdown--sm" icon={A.icChevronDown12} />
       </div>
+      <label className="hz-search">
+        <img src={A.icSearch14} alt="" />
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="도로명·읍면동 검색" />
+      </label>
       <div className="hz-table">
         <div className="hz-row hz-row--th">
-          <span>구간</span><span>노면온도</span><span>제설제</span><span>기상</span><span>등급</span>
+          <span>구간</span><span>위험요소</span><span>노면온도</span><span>제설제</span><span>기상</span><span>등급</span>
         </div>
         <div className="hz-body">
           {groups.map((g) => {
@@ -93,10 +94,13 @@ export default function HazardList({ onShowPlace }) {
                         }}
                       >
                         <span className="hz-seg">
-                          <i><i style={{ height: st.bar, background: HAZARD_COLORS[r.type], opacity: 0.9 }} /></i>
-                          <b>{r.road}</b>
+                          <span>
+                            <i><i style={{ height: st.bar, background: HAZARD_COLORS[r.type], opacity: 0.9 }} /></i>
+                            <b>{r.road}</b>
+                          </span>
                           <small>{r.dong}</small>
                         </span>
+                        <span className="hz-type" style={{ color: TYPE_TEXT[r.type] }}>{r.type}</span>
                         <b className="hz-temp">{r.surface.toFixed(1)}℃</b>
                         <b className={r.salt < 20 ? 'hz-low' : ''}>{r.salt}%</b>
                         <span>{r.air.toFixed(1)}℃ {r.sky}</span>

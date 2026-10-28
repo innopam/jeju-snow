@@ -156,63 +156,35 @@
 .warn-banner button { color: #7ca4ff; font-size: 12px; font-weight: 500; white-space: nowrap; }
 .warn-banner button:hover { text-decoration: underline; }
 
-.mini-cards { display: flex; gap: 6px; }
-.mini-cards > div { flex: 1; min-width: 0; background: #f5f6fa; border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; line-height: 1.4; }
-.mini-cards small { font-size: 11px; font-weight: 500; color: #777; }
-.mini-cards p { display: flex; align-items: baseline; gap: 2px; white-space: nowrap; }
-.mini-cards b { font-size: 16px; }
-.mini-cards span { font-size: 10px; color: #777; }
-.mini-cards span.muted { color: #999; }
-
-
-.daily { position: relative; height: 80px; margin-left: 24px; }
-.daily__grid { position: absolute; left: 0; right: 0; height: 1px; background: #eee; }
-.daily__grid small { position: absolute; right: calc(100% + 6px); top: -7px; font-size: 9px; color: #999; }
-.daily__bars { position: absolute; inset: 0 0 auto 0; height: 80px; display: flex; justify-content: space-around; padding: 0 4px; }
-.daily__col { width: 26px; display: flex; flex-direction: column; align-items: center; }
-.daily__stack { height: 62px; width: 18px; display: flex; flex-direction: column; justify-content: flex-end; }
-.daily__stack i:first-child { border-radius: 3px 3px 0 0; }
-.daily__col small { margin-top: 4px; font-size: 9px; color: #999; }
-.daily__col small.today { color: #222; font-weight: 700; }
-.bar-legend { display: flex; gap: 12px; }
-.bar-legend span { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #777; }
-.bar-legend i { width: 7px; height: 7px; border-radius: 2px; }
 /* 위험구간 목록 (GIS-003) */
 .dp__head > small b { font-size: 12px; color: #222; }
-.hz-chips { display: flex; gap: 6px; }
-.hz-chips button { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border: 1px solid #e4e7ec; border-radius: 14px; background: #fff; font-size: 12px; white-space: nowrap; }
-.hz-chips button img { width: 6px; height: 6px; }
-.hz-chips button span { font-weight: 500; color: #444; }
-.hz-chips button.on { background: #202224; border-color: #202224; }
-.hz-chips button.on span { color: #fff; }
-.hz-chips button:first-child span { font-weight: 400; color: #c9cdd3; }
-.hz-chips button:first-child b { color: #222; }
-.hz-chips button:first-child.on b { color: #fff; }
-.hz-chips button:first-child:not(.on) span { color: #777; }
 .hz-tools { display: flex; gap: 6px; }
-.hz-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #e4e7ec; border-radius: 6px; background: #fff; }
+.hz-tools .dropdown { flex: 1 1 0; min-width: 0; padding: 0 6px 0 8px; }
+.hz-search { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #e4e7ec; border-radius: 6px; background: #fff; }
 .hz-search:focus-within { border-color: var(--accent); }
 .hz-search img { width: 14px; height: 14px; flex: none; }
 .hz-search input { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; font-size: 12px; color: #222; background: none; padding: 0; }
 .hz-search input::placeholder { color: #aaa; }
 .hz-table { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; }
-.hz-row { position: relative; display: grid; grid-template-columns: minmax(0, 120px) 42px 32px 56px 32px; gap: 6px; align-items: center; width: 100%; padding: 8px 12px; border-top: 1px solid #f2f3f5; font-size: 12px; text-align: left; border-radius: 0; }
+.hz-row { position: relative; display: grid; grid-template-columns: minmax(0, 76px) 52px 42px 32px 53px 32px; gap: 4px; align-items: center; width: 100%; padding: 6px 10px; border-top: 1px solid #f2f3f5; font-size: 12px; text-align: left; border-radius: 0; }
 .hz-row:hover { background: #f7f8fb; }
 .hz-row.sel { background: rgba(56, 103, 232, 0.08); }
 .hz-row.sel::before { content: ''; position: absolute; left: 0; top: -1px; bottom: 0; width: 3px; background: var(--accent); }
-.hz-row--th { border-top: 0; background: #f5f6fa; padding: 9px 12px; font-size: 11px; font-weight: 500; color: #777; }
+.hz-row--th { border-top: 0; background: #f5f6fa; padding: 9px 10px; white-space: nowrap; font-size: 11px; font-weight: 500; color: #777; }
 .hz-row--th:hover { background: #f5f6fa; }
 .hz-row > b { font-weight: 700; color: #222; }
 .hz-row > b.hz-temp { color: #2f6fe4; }
 .hz-row > b.hz-low { color: #f93c65; }
-.hz-row > span:nth-child(4) { font-size: 11px; color: #444; white-space: nowrap; }
+.hz-row > span:nth-child(5) { font-size: 11px; color: #444; white-space: nowrap; }
+.hz-row > .hz-type { font-size: 11px; font-weight: 500; white-space: nowrap; }
 .hz-row em { display: inline-block; font-style: normal; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
-.hz-seg { display: flex; align-items: center; gap: 4px; padding-left: 18px; min-width: 0; white-space: nowrap; overflow: hidden; }
-.hz-seg > i { position: relative; width: 12px; height: 10px; flex: none; display: grid; align-items: center; }
-.hz-seg > i > i { width: 12px; border-radius: 4px; }
-.hz-seg b { font-weight: 700; color: #222; }
-.hz-seg small { font-size: 11px; color: #999; overflow: hidden; text-overflow: ellipsis; }
-.hz-body { height: 380px; overflow-y: auto; scrollbar-width: none; }
+.hz-seg { display: flex; flex-direction: column; gap: 1px; padding-left: 8px; min-width: 0; white-space: nowrap; overflow: hidden; }
+.hz-seg > span { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.hz-seg > span > i { position: relative; width: 12px; height: 10px; flex: none; display: grid; align-items: center; }
+.hz-seg > span > i > i { width: 12px; border-radius: 4px; }
+.hz-seg b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #222; }
+.hz-seg small { padding-left: 16px; font-size: 11px; color: #999; overflow: hidden; text-overflow: ellipsis; }
+.hz-body { height: 374px; overflow-y: auto; scrollbar-width: none; }
 .hz-body::-webkit-scrollbar { display: none; }
 .hz-body > div:first-child > .hz-group { border-top: 0; }
 .hz-group { display: flex; align-items: center; gap: 6px; width: 100%; padding: 8px 12px 8px 10px; border-top: 1px solid #eef0f3; background: #fafbfc; text-align: left; border-radius: 0; }
@@ -227,13 +199,6 @@
 .hz-foot { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-top: 1px solid #eef0f3; font-size: 11px; color: #777; }
 .hz-foot button { font-size: 11px; font-weight: 500; color: var(--accent); }
 .hz-foot button:hover { text-decoration: underline; }
-
-.recent { list-style: none; margin: 0; padding: 0; }
-.recent li { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 12px; }
-.recent li + li { border-top: 1px solid #e4e7ec; }
-.recent small { font-size: 11px; color: #999; }
-.recent b { width: 64px; }
-.recent span { flex: 1; color: #555; }
 
 /* 제설 차량 현황 */
 .vp__list-sec { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -325,21 +290,6 @@
 .seg-dot .mk-tag { position: absolute; left: 14px; top: -16px; font-style: normal; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; white-space: nowrap; pointer-events: none; }
 .seg-dot .mk-tag.habitual { background: #fff4d9; color: #dc7200; border: 1px solid #f5c26b; top: 10px; }
 
-/* 도로 위험 발생 가능성 · 권역별 */
-.risk-card { margin-top: 10px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; }
-.risk-card__head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 500; color: #777; }
-.risk-card__total { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 400; }
-.risk-card__row { display: grid; grid-template-columns: minmax(0, 112px) 44px minmax(0, 88px) 47px; gap: 8px; align-items: center; font-size: 12px; font-weight: 500; color: #222; }
-.risk-card__row--th { padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; font-size: 10px; color: #777; }
-.risk-card__row .cold { color: #2f6fe4; }
-.risk-card__name { display: flex; flex-direction: column; line-height: 1.4; white-space: nowrap; overflow: hidden; }
-.risk-card__name b { font-weight: 500; font-size: 12px; }
-.risk-card__name small { font-size: 10px; font-weight: 400; color: #777; }
-.risk-card__prob { display: flex; align-items: center; gap: 6px; }
-.risk-card__prob > i { position: relative; width: 54px; height: 6px; border-radius: 3px; background: #eef0f3; overflow: hidden; flex: none; }
-.risk-card__prob > i > i { position: absolute; left: 0; top: 0; height: 6px; border-radius: 3px; }
-.risk-card__prob b { font-size: 11px; }
-.grade-badge { font-style: normal; font-size: 11px; font-weight: 700; line-height: 1.4; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
 .seg-pop__hazard { color: #3e3e3e; }
 .seg-pop__refreeze { width: 100%; display: flex; align-items: center; gap: 13px; padding: 2px 10px 2px 16px; background: #fff5f7; border: 1px solid #ffd2db; border-radius: 8px; font-size: 11px; }
 .seg-pop__refreeze > b { color: #e11d48; white-space: nowrap; }
@@ -370,8 +320,6 @@
 .route-head span { color: #777; font-size: 12px; }
 .route-head button { height: 26px; padding: 0 10px; border-radius: 4px; background: #37348f; color: #fff; font-size: 12px; font-weight: 700; }
 .layer-empty { font-size: 12px; color: #999; }
-.recent button { flex: 1; text-align: left; color: #555; font-size: 12px; }
-.recent button:hover { color: #37348f; text-decoration: underline; }
 
 /* ── OpenLayers 지도 (K-Geo플랫폼/브이월드 배경지도) ───────── */
 .olmap { position: absolute; inset: 0; background: #aad3df; }

@@ -25,8 +25,8 @@ import { BP, useMedia } from '../useMedia.js'
 import './dashboard.css'
 
 // UI-SIRS-001-01 ~ 04 통합 관제 대시보드 — OpenLayers + K-Geo플랫폼(브이월드) 배경지도
-const BASE_LAYERS = ['기상정보', '연속지적도', '적설 감시 CCTV']
-const SECTION_LAYERS = ['주요 교통량 축', '제설 우선노선', '상습 결빙 구간', '재결빙 주의 구간', '블랙아이스·적설·결빙 위험구간']
+const BASE_LAYERS = ['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선']
+const SECTION_LAYERS = ['상습 결빙 구간', '재결빙 주의 구간', '블랙아이스·적설·결빙 위험구간']
 const MODES = [
   { key: 'status', label: '제설 작업 상태' },
   { key: 'count', label: '제설 작업 횟수' },
@@ -51,7 +51,7 @@ const segGeo = segAt
 export default function Dashboard() {
   const { setToast } = useOutletContext()
   const location = useLocation()
-  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선', '재결빙 주의 구간', HAZARD_LAYER]))
+  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선', '재결빙 주의 구간']))
   const isMobile = useMedia(BP.mobile)
   const PANEL_W = isMobile ? 0 : PANEL_DESKTOP // 모바일은 하단 시트라 지도 가로를 가리지 않는다
   const [layerOpen, setLayerOpen] = useState(() => !mq(BP.mobile))
@@ -418,7 +418,7 @@ export default function Dashboard() {
             )}
             {filteredSection.length > 0 && (
               <div className="layer-group">
-                <p>구간 정보</p>
+                <p>적설·결빙 예측</p>
                 {filteredSection.map((l) => (
                   <button key={l} onClick={() => toggleLayer(l)} aria-pressed={layers.has(l)}>
                     <Checkbox checked={layers.has(l)} />
@@ -429,7 +429,7 @@ export default function Dashboard() {
             )}
             {filteredBase.length + filteredSection.length === 0 && <p className="layer-empty">‘{layerQuery}’ 레이어가 없습니다.</p>}
             <div className="layer-group">
-              <p>제설 작업</p>
+              <p>제설 작업·노면</p>
               {MODES.map((m) => (
                 <button key={m.key} onClick={() => changeMode(m.key)} aria-pressed={mode === m.key}>
                   <Radio checked={mode === m.key} />
@@ -552,7 +552,6 @@ export default function Dashboard() {
           </div>
           {tab === 'dashboard' ? (
             <DashboardPanel
-              region={region.mountain ? '한라산' : region.name}
               onShowSegment={(code) => {
                 const s = findSegment(code)
                 if (isMobile) setPanelOpen(false)
