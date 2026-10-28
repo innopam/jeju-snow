@@ -53,6 +53,13 @@ import wxCloud from './assets/fig/a6a47.png'
 import wxSnow from './assets/fig/6d44b.png'
 import wxSunCloud from './assets/fig/d91d2.png'
 import wxRainSnow from './assets/fig/805a2.png'
+import icSearch14 from './assets/fig/ef49b.svg'
+import icChevronDown12 from './assets/fig/c8ce8.svg'
+import icChevronDown14 from './assets/fig/89d30.svg'
+import icChevronRight14 from './assets/fig/3c469.svg'
+import dotGradeSevere from './assets/fig/69c2b.svg'
+import dotGradeAlert from './assets/fig/71861.svg'
+import dotGradeCaution from './assets/fig/f37a9.svg'
 import fusionHalo from './assets/fig/1017f.svg'
 import veh1 from './assets/fig/927a3.svg'
 import veh2 from './assets/fig/c41a3.svg'
@@ -76,7 +83,7 @@ export const A = {
   alertDot, icStatusMinor, icStatusWarning, icAlert, unreadDot, realtimeDot, icToggleOn,
   icCalendar, thumbMap, thumbSatellite, wxCloud, wxSnow, wxSunCloud, wxRainSnow, 
   
-  fusionHalo,
+  fusionHalo, icSearch14, icChevronDown12, icChevronDown14, icChevronRight14, dotGradeSevere, dotGradeAlert, dotGradeCaution,
 }
 
 export const VEHICLE_ICONS = { 1: veh1, 2: veh2, 3: veh3, 4: veh4, 5: veh5, 6: veh6, 7: veh7, 8: veh8, 9: veh9, 10: veh10, 11: veh11, 12: veh12 }

@@ -9,7 +9,7 @@ export function Radio({ checked }) {
   return <span className={`radio${checked ? ' on' : ''}`}>{checked && <img src={A.icRadioOn} alt="" />}</span>
 }
 
-export function Dropdown({ value, options, onChange, width, height = 32 }) {
+export function Dropdown({ value, options, onChange, width, height = 32, className = '', icon = A.icChevronDown }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   useEffect(() => {
@@ -19,9 +19,9 @@ export function Dropdown({ value, options, onChange, width, height = 32 }) {
     return () => document.removeEventListener('mousedown', close)
   }, [open])
   return (
-    <button ref={ref} type="button" className="dropdown" style={{ width, height }} onClick={() => setOpen((o) => !o)}>
+    <button ref={ref} type="button" className={`dropdown ${className}`.trim()} style={{ width, height }} onClick={() => setOpen((o) => !o)}>
       <span>{value}</span>
-      <img src={A.icChevronDown} alt="" />
+      <img src={icon} alt="" />
       {open && (
         <ul className="dropdown__list">
           {options.map((o) => (

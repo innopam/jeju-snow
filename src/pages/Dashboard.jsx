@@ -13,7 +13,7 @@ import { Checkbox, Radio } from '../components/Controls.jsx'
 import { VEHICLES } from '../data/dashboard.js'
 import {
   CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SURFACE_COLORS, TRAFFIC_WIDTH,
-  VEHICLES_GEO, WEATHER_GEO, regionAtGeo, vehicleTrack,
+  VEHICLES_GEO, WEATHER_GEO, admDongCenter, regionAtGeo, vehicleTrack,
 } from '../data/geo.js'
 import { RISK_COLOR, ROUTE_SEGMENTS, SEGMENTS, STATE_COLOR, findSegment, segAt, segName } from '../data/segments.js'
 import { HAS_VWORLD, createBaseLayers, createCadastralLayer } from '../map/basemap.js'
@@ -558,6 +558,12 @@ export default function Dashboard() {
                 setMode('status')
                 setSegCode(code)
                 flyTo(segGeo(s), 12.5)
+              }}
+              onShowPlace={(dong) => {
+                const at = admDongCenter(dong)
+                if (!at) return
+                if (isMobile) setPanelOpen(false)
+                flyTo(at, 13.5)
               }}
             />
           ) : (

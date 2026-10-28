@@ -177,6 +177,57 @@
 .bar-legend { display: flex; gap: 12px; }
 .bar-legend span { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #777; }
 .bar-legend i { width: 7px; height: 7px; border-radius: 2px; }
+/* 위험구간 목록 (GIS-003) */
+.dp__head > small b { font-size: 12px; color: #222; }
+.hz-chips { display: flex; gap: 6px; }
+.hz-chips button { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border: 1px solid #e4e7ec; border-radius: 14px; background: #fff; font-size: 12px; white-space: nowrap; }
+.hz-chips button img { width: 6px; height: 6px; }
+.hz-chips button span { font-weight: 500; color: #444; }
+.hz-chips button.on { background: #202224; border-color: #202224; }
+.hz-chips button.on span { color: #fff; }
+.hz-chips button:first-child span { font-weight: 400; color: #c9cdd3; }
+.hz-chips button:first-child b { color: #222; }
+.hz-chips button:first-child.on b { color: #fff; }
+.hz-chips button:first-child:not(.on) span { color: #777; }
+.hz-tools { display: flex; gap: 6px; }
+.hz-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #e4e7ec; border-radius: 6px; background: #fff; }
+.hz-search:focus-within { border-color: var(--accent); }
+.hz-search img { width: 14px; height: 14px; flex: none; }
+.hz-search input { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; font-size: 12px; color: #222; background: none; padding: 0; }
+.hz-search input::placeholder { color: #aaa; }
+.hz-table { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; }
+.hz-row { position: relative; display: grid; grid-template-columns: minmax(0, 120px) 42px 32px 56px 32px; gap: 6px; align-items: center; width: 100%; padding: 8px 12px; border-top: 1px solid #f2f3f5; font-size: 12px; text-align: left; border-radius: 0; }
+.hz-row:hover { background: #f7f8fb; }
+.hz-row.sel { background: rgba(56, 103, 232, 0.08); }
+.hz-row.sel::before { content: ''; position: absolute; left: 0; top: -1px; bottom: 0; width: 3px; background: var(--accent); }
+.hz-row--th { border-top: 0; background: #f5f6fa; padding: 9px 12px; font-size: 11px; font-weight: 500; color: #777; }
+.hz-row--th:hover { background: #f5f6fa; }
+.hz-row > b { font-weight: 700; color: #222; }
+.hz-row > b.hz-temp { color: #2f6fe4; }
+.hz-row > b.hz-low { color: #f93c65; }
+.hz-row > span:nth-child(4) { font-size: 11px; color: #444; white-space: nowrap; }
+.hz-row em { display: inline-block; font-style: normal; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.hz-seg { display: flex; align-items: center; gap: 4px; padding-left: 18px; min-width: 0; white-space: nowrap; overflow: hidden; }
+.hz-seg > i { position: relative; width: 12px; height: 10px; flex: none; display: grid; align-items: center; }
+.hz-seg > i > i { width: 12px; border-radius: 4px; }
+.hz-seg b { font-weight: 700; color: #222; }
+.hz-seg small { font-size: 11px; color: #999; overflow: hidden; text-overflow: ellipsis; }
+.hz-body { height: 380px; overflow-y: auto; scrollbar-width: none; }
+.hz-body::-webkit-scrollbar { display: none; }
+.hz-body > div:first-child > .hz-group { border-top: 0; }
+.hz-group { display: flex; align-items: center; gap: 6px; width: 100%; padding: 8px 12px 8px 10px; border-top: 1px solid #eef0f3; background: #fafbfc; text-align: left; border-radius: 0; }
+.hz-group:hover { background: #f3f5f8; }
+.hz-group > img { width: 14px; height: 14px; flex: none; }
+.hz-group > b { font-size: 12px; font-weight: 700; color: #222; white-space: nowrap; }
+.hz-group > small { flex: 1; min-width: 0; font-size: 11px; color: #777; }
+.hz-count { display: flex; align-items: center; gap: 3px; margin-left: 2px; }
+.hz-count img { width: 6px; height: 6px; }
+.hz-count b { width: 16px; font-size: 11px; font-weight: 700; }
+.hz-empty { padding: 24px 12px; text-align: center; font-size: 12px; color: #999; }
+.hz-foot { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-top: 1px solid #eef0f3; font-size: 11px; color: #777; }
+.hz-foot button { font-size: 11px; font-weight: 500; color: var(--accent); }
+.hz-foot button:hover { text-decoration: underline; }
+
 .recent { list-style: none; margin: 0; padding: 0; }
 .recent li { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 12px; }
 .recent li + li { border-top: 1px solid #e4e7ec; }

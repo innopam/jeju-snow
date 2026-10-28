@@ -167,6 +167,16 @@ export function regionAtGeo(lonlat) {
   return { city: hit.city, name: hit.name, mountain }
 }
 
+// 행정동 경계(가장 큰 외곽선)의 범위 중심 — 위험구간 목록에서 지도 이동 위치로 쓴다
+export function admDongCenter(name) {
+  const d = ADM_DONG.find((x) => x.name === name)
+  if (!d) return null
+  const outer = d.rings.map((poly) => poly[0]).reduce((a, b) => (b.length > a.length ? b : a))
+  const xs = outer.map((p) => p[0])
+  const ys = outer.map((p) => p[1])
+  return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2]
+}
+
 // 차량이 놓인 노선 구간(edge)과 진행 방향
 export function vehicleTrack(v) {
   const route = ROUTES.find((r) => r.name === v.road)
