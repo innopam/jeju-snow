@@ -40,6 +40,8 @@ const LEGENDS = {
 const HAZARD_LAYER = '블랙아이스·적설·결빙 위험구간'
 const TRAFFIC_LAYER = '주요 교통량 축'
 const PRIORITY_LAYER = '제설 우선노선'
+// 주요 교통량 축은 1등급 축만 표시 (여러 등급을 겹치면 지도가 복잡해짐)
+const MAIN_AXES = ROUTES.filter((r) => r.traffic?.grade === 1)
 const HAZARD_LEGEND = Object.entries(HAZARD_COLORS)
 const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
 const PANEL_DESKTOP = 380
@@ -81,7 +83,7 @@ export default function Dashboard() {
       const routes = new VectorLayer({ source: new VectorSource(), style: (f) => routeStyle(f, live.current), updateWhileAnimating: true, updateWhileInteracting: true })
       // 주요 교통량 축: 노선 아래 회색 밴드 (다른 레이어보다 항상 아래)
       const traffic = new VectorLayer({ source: new VectorSource(), style: trafficStyle, updateWhileAnimating: true, updateWhileInteracting: true })
-      ROUTES.filter((r) => r.traffic).forEach((r) => {
+      MAIN_AXES.forEach((r) => {
         const f = new Feature(new LineString(r.coords.map((c) => fromLonLat(c))))
         f.setProperties({ trafficRoute: r })
         traffic.getSource().addFeature(f)
@@ -294,7 +296,7 @@ export default function Dashboard() {
       <div ref={elRef} className={`olmap${basemap === 'satellite' && !HAS_VWORLD ? ' satellite-sim' : ''}`} />
       <div className="map-overlays">
         {island && showLayer(TRAFFIC_LAYER) &&
-          ROUTES.filter((r) => r.traffic).map((r) => { const p = px(routeMid(r)); return <span key={`t-${r.name}`} className="traffic-label" style={{ left: p[0], top: p[1] }}>{r.name.replace('도로', '')} 축 · {r.traffic.grade}등급</span> })}
+          MAIN_AXES.map((r) => { const p = px(routeMid(r)); return <span key={`t-${r.name}`} className="traffic-label" style={{ left: p[0], top: p[1] }}>{r.name.replace('도로', '')} 축 · {r.traffic.grade}등급</span> })}
         {island && showLayer(PRIORITY_LAYER) &&
           ROUTES.filter((r) => r.priority).flatMap((r) => {
             const pts = r.coords.map(px)
@@ -515,9 +517,7 @@ export default function Dashboard() {
               </span>
             ))}
             {(showLayer(TRAFFIC_LAYER) || showLayer(PRIORITY_LAYER)) && <p>구간 정보</p>}
-            {showLayer(TRAFFIC_LAYER) && [1, 2, 3].map((g) => (
-              <span key={`tl-${g}`} className="legend__traffic"><i style={{ height: TRAFFIC_WIDTH[g] / 2 }} />{g}등급 축</span>
-            ))}
+            {showLayer(TRAFFIC_LAYER) && <span className="legend__traffic"><i style={{ height: TRAFFIC_WIDTH[1] / 2 }} />1등급 축</span>}
             {showLayer(PRIORITY_LAYER) && (
               <>
                 <span className="legend__priority"><i className="badge" />순위 배지 1~3</span>
