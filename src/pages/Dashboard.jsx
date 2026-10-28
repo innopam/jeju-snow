@@ -13,7 +13,7 @@ import { Checkbox, Radio } from '../components/Controls.jsx'
 import { VEHICLES } from '../data/dashboard.js'
 import {
   CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SURFACE_COLORS, TRAFFIC_WIDTH,
-  VEHICLES_GEO, WEATHER_GEO, nearestRegionGeo, vehicleTrack,
+  VEHICLES_GEO, WEATHER_GEO, regionAtGeo, vehicleTrack,
 } from '../data/geo.js'
 import { RISK_COLOR, ROUTE_SEGMENTS, SEGMENTS, STATE_COLOR, findSegment, segAt, segName } from '../data/segments.js'
 import { HAS_VWORLD, createBaseLayers, createCadastralLayer } from '../map/basemap.js'
@@ -169,7 +169,7 @@ export default function Dashboard() {
   const size = mapRef.current?.getSize() ?? [1246, 919]
   const visibleCenterPx = [(size[0] - (panelOpen ? PANEL_W : 0)) / 2, size[1] / 2]
   const centerCoord = mapRef.current?.getCoordinateFromPixel(visibleCenterPx)
-  const region = nearestRegionGeo(centerCoord ? toLonLat(centerCoord) : JEJU_CENTER)
+  const region = regionAtGeo(centerCoord ? toLonLat(centerCoord) : JEJU_CENTER)
 
   const flyTo = (lonlat, zoom = 12.5) => {
     const view = mapRef.current?.getView()
@@ -551,7 +551,7 @@ export default function Dashboard() {
           </div>
           {tab === 'dashboard' ? (
             <DashboardPanel
-              region={region.name}
+              region={region.mountain ? '한라산' : region.name}
               onShowSegment={(code) => {
                 const s = findSegment(code)
                 if (isMobile) setPanelOpen(false)

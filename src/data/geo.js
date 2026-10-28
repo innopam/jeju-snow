@@ -1,6 +1,7 @@
 // 지도에 올릴 목업 공간 데이터 (경위도 EPSG:4326, [경도, 위도])
 // 노선 좌표는 주요 경유지를 이은 근사치다 — 실제 운영 시 스마트빌리지 인프라의 노선·구간 데이터로 교체한다.
 import { A } from '../assets.js'
+import { ADM_DONG } from './admdong.js'
 
 export const JEJU_CENTER = [126.55, 33.37]
 
@@ -119,7 +120,7 @@ export const WEATHER_GEO = [
   { name: '남원', temp: 0.9, icon: A.wxRainSnow, at: [126.72, 33.28] },
 ]
 
-// 행정구역 경로(지도 가운데 기준) — 읍면동 대표 좌표
+// 읍면 대표 좌표 — 노선 구간의 대략적인 위치 이름(구간 팝업 등)에 사용
 export const REGIONS_GEO = [
   { city: '제주시', name: '제주시 동지역', at: [126.53, 33.5] },
   { city: '제주시', name: '애월읍', at: [126.36, 33.44] },
@@ -137,6 +138,34 @@ export const REGIONS_GEO = [
 ]
 export const nearestRegionGeo = ([lon, lat]) =>
   REGIONS_GEO.reduce((best, r) => ((r.at[0] - lon) ** 2 + (r.at[1] - lat) ** 2 < (best.at[0] - lon) ** 2 + (best.at[1] - lat) ** 2 ? r : best))
+
+// 좌표가 속한 행정동(읍·면·동) — 경계 다각형 안쪽 판정, 바다 위면 가장 가까운 경계의 행정동
+const inRings = (rings, [x, y]) => {
+  let inside = false
+  for (const ring of rings)
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i]
+      const [xj, yj] = ring[j]
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside
+    }
+  return inside
+}
+const HALLASAN = [126.533, 33.362]
+export function regionAtGeo(lonlat) {
+  let hit = ADM_DONG.find((d) => d.rings.some((poly) => inRings(poly, lonlat)))
+  if (!hit) {
+    let bestD = Infinity
+    for (const d of ADM_DONG)
+      for (const poly of d.rings)
+        for (const [x, y] of poly[0]) {
+          const dd = (x - lonlat[0]) ** 2 + (y - lonlat[1]) ** 2
+          if (dd < bestD) [bestD, hit] = [dd, d]
+        }
+  }
+  // 한라산 정상부(약 5km 이내)는 기상 현황을 산악 기준으로 보여 준다
+  const mountain = (lonlat[0] - HALLASAN[0]) ** 2 + ((lonlat[1] - HALLASAN[1]) * 1.2) ** 2 < 0.05 ** 2
+  return { city: hit.city, name: hit.name, mountain }
+}
 
 // 차량이 놓인 노선 구간(edge)과 진행 방향
 export function vehicleTrack(v) {
