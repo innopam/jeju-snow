@@ -1,3 +1,5 @@
+import { HAZARD_ZONES, ROUTES, SEGMENTS_GEO, nearestRegionGeo } from './geo.js'
+
 // 제설 구간 목업 데이터 (지도 좌표는 data/geo.js 의 SEGMENTS_GEO)
 
 export const STATE_COLOR = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
@@ -15,3 +17,43 @@ export const SEGMENTS = [
   { code: 'H-1', road: '한창로', place: '한경', state: '완료', risk: '관심', hazard: '습기', habitual: true, jur: '제주시', region: '한경면' },
 ]
 export const segName = (s) => `${s.road} · ${s.place} (${s.code})`
+
+// ── 노선 구간(edge) 단위 정보 ─────────────────────────────
+// 실제 운영 노선은 서로 이어지지 않은 짧은 구간들의 묶음이다. 지도에서 구간 하나를 고르면 그 구간의 정보를 보여준다.
+// 위 SEGMENTS(대표 관측 구간)는 가장 가까운 구간에 겹쳐 같은 코드·정보를 쓰고, 나머지는 노선 데이터에서 만든다.
+
+const ROUTE_PREFIX = { '1100도로': 'K', '5·16도로': 'M', 평화로: 'P', 번영로: 'B', 산록도로: 'S', 비자림로: 'V', 남조로: 'N' }
+// 노면 상태 → 위험요소 · 재결빙 위험 등급 (위험구간 레이어에 속하지 않는 구간)
+const SURFACE_RISK = { 아이스: ['결빙', '경계'], 적설: ['적설', '주의'], 슬러시: ['적설', '주의'], 젖음: ['없음', '주의'], 습기: ['없음', '관심'], 건조: ['없음', '관심'], 오류: ['확인 필요', '관심'] }
+const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+const d2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 997, 7)
+
+export const ROUTE_SEGMENTS = ROUTES.flatMap((r) =>
+  r.coords.slice(0, -1).map((a, idx) => {
+    const at = mid(a, r.coords[idx + 1])
+    const zone = HAZARD_ZONES.find((z) => z.route === r.name && idx >= z.from && idx <= z.to)
+    const [hazard, risk] = zone ? [zone.type, zone.grade] : SURFACE_RISK[r.surface[idx]]
+    const code = `${ROUTE_PREFIX[r.name]}-L${idx + 1}` // 링크(구간) 번호 — 대표 관측 구간 코드(K-12 등)와 구분
+    const refreeze = r.states[idx] !== '완료' && (r.surface[idx] === '아이스' || zone?.type === '결빙' || zone?.type === '블랙아이스')
+    const h = hash(code)
+    return {
+      code, road: r.name, place: nearestRegionGeo(at).name.replace(' 동지역', ''), route: r.name, idx, at,
+      state: r.states[idx], risk, hazard, refreeze,
+      ...(refreeze && { roadTemp: -(0.5 + (h % 25) / 10).toFixed(1) * 1, residue: 8 + (h % 22) }),
+    }
+  }),
+)
+
+// 대표 관측 구간을 가장 가까운 노선 구간에 덮어쓴다
+SEGMENTS.forEach((s) => {
+  const geo = SEGMENTS_GEO[s.code]
+  const cands = ROUTE_SEGMENTS.filter((e) => e.road === s.road)
+  if (!geo || !cands.length) return
+  const near = cands.reduce((b, e) => (d2(e.at, geo) < d2(b.at, geo) ? e : b))
+  Object.assign(near, { ...s, at: geo, route: near.route, idx: near.idx })
+})
+
+const ALL = [...ROUTE_SEGMENTS, ...SEGMENTS.filter((s) => !ROUTE_SEGMENTS.some((e) => e.code === s.code))]
+export const findSegment = (code) => ALL.find((s) => s.code === code) ?? null
+export const segAt = (s) => s.at ?? SEGMENTS_GEO[s.code]

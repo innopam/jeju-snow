@@ -87,7 +87,7 @@
 /* 구간 정보 팝업 */
 .seg-pop {
   position: absolute; transform: translate(-50%, 18px); flex-wrap: wrap; display: flex; align-items: flex-start; gap: 5px 12px; padding: 12px; width: 298px; background: #fff; border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.08); filter: drop-shadow(0 4px 8px rgba(0,0,0,.1)); z-index: 3;
+  border: 1px solid rgba(0,0,0,.08); filter: drop-shadow(0 4px 8px rgba(0,0,0,.1)); z-index: 5;
 }
 .seg-pop__icon { width: 44px; height: 44px; border-radius: 10px; background: #f2f2fa; display: grid; place-items: center; }
 .seg-pop__icon img { width: 24px; height: 24px; }

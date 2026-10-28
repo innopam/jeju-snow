@@ -12,10 +12,10 @@ import { A, VEHICLE_ICONS } from '../assets.js'
 import { Checkbox, Radio } from '../components/Controls.jsx'
 import { VEHICLES } from '../data/dashboard.js'
 import {
-  CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SEGMENTS_GEO, SURFACE_COLORS, TRAFFIC_WIDTH,
+  CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SURFACE_COLORS, TRAFFIC_WIDTH,
   VEHICLES_GEO, WEATHER_GEO, nearestRegionGeo, vehicleTrack,
 } from '../data/geo.js'
-import { RISK_COLOR, SEGMENTS, STATE_COLOR, segName } from '../data/segments.js'
+import { RISK_COLOR, ROUTE_SEGMENTS, SEGMENTS, STATE_COLOR, findSegment, segAt, segName } from '../data/segments.js'
 import { HAS_VWORLD, createBaseLayers, createCadastralLayer } from '../map/basemap.js'
 import { fromLonLat, toLonLat, useOlMap } from '../map/useOlMap.js'
 import DashboardPanel from './dashboard/DashboardPanel.jsx'
@@ -44,7 +44,7 @@ const HAZARD_LEGEND = Object.entries(HAZARD_COLORS)
 const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
 const PANEL_DESKTOP = 380
 const mq = (q) => typeof window !== 'undefined' && window.matchMedia(q).matches
-const segGeo = (s) => SEGMENTS_GEO[s.code]
+const segGeo = segAt
 
 export default function Dashboard() {
   const { setToast } = useOutletContext()
@@ -66,10 +66,10 @@ export default function Dashboard() {
   const [measure, setMeasure] = useState(null) // { text, at }
 
   // 지도 상태를 스타일 함수에서 읽기 위한 ref
-  const live = useRef({ mode, selectedMapId: null, tab })
+  const live = useRef({ mode, selectedMapId: null, tab, segCode: null })
   const selectedVehicle = selected != null ? VEHICLES[selected] : null
   const selectedMapId = selectedVehicle?.mapId ?? null
-  live.current = { mode, selectedMapId, tab }
+  live.current = { mode, selectedMapId, tab, segCode: tab === 'dashboard' ? segCode : null }
 
   const layerRefs = useRef({})
   const { elRef, mapRef, tick, pixelOf } = useOlMap({
@@ -96,7 +96,7 @@ export default function Dashboard() {
       ROUTES.forEach((r) =>
         r.coords.slice(0, -1).forEach((a, i) => {
           const f = new Feature(new LineString([fromLonLat(a), fromLonLat(r.coords[i + 1])]))
-          f.setProperties({ route: r.name, idx: i, state: r.states[i], count: r.counts[i], surface: r.surface[i] })
+          f.setProperties({ route: r.name, idx: i, code: ROUTE_SEGMENTS.find((e) => e.route === r.name && e.idx === i).code, state: r.states[i], count: r.counts[i], surface: r.surface[i] })
           routes.getSource().addFeature(f)
         }),
       )
@@ -123,11 +123,15 @@ export default function Dashboard() {
   // 위험구간 띠 클릭 → 해당 구간 정보 팝업, 마우스를 올리면 포인터 커서
   useEffect(() => {
     const map = mapRef.current
-    const { hazards, traffic } = layerRefs.current
+    const { hazards, traffic, routes } = layerRefs.current
+    const hitEdge = (pixel) => map.forEachFeatureAtPixel(pixel, (f) => f.get('code'), { layerFilter: (l) => l === routes, hitTolerance: 6 })
     const hit = (pixel) => map.forEachFeatureAtPixel(pixel, (f) => f.get('hazard'), { layerFilter: (l) => l === hazards, hitTolerance: 4 })
     const hitTraffic = (pixel) => map.forEachFeatureAtPixel(pixel, (f) => f.get('trafficRoute'), { layerFilter: (l) => l === traffic, hitTolerance: 2 })
     const onClick = (e) => {
       if (drawRef.current) return
+      // 노선 구간 하나를 고르면 그 구간 정보 팝업
+      const code = hitEdge(e.pixel)
+      if (code) { setSegCode(code); setTab('dashboard'); return }
       const z = hit(e.pixel)
       if (z) { setSegCode(z.seg); setTab('dashboard'); return }
       const r = hitTraffic(e.pixel)
@@ -136,9 +140,10 @@ export default function Dashboard() {
     }
     const onMove = (e) => {
       if (e.dragging || drawRef.current) return
-      const z = hit(e.pixel)
-      const r = !z && hitTraffic(e.pixel)
-      map.getTargetElement().style.cursor = z || r ? 'pointer' : ''
+      const edge = hitEdge(e.pixel)
+      const z = !edge && hit(e.pixel)
+      const r = !edge && !z && hitTraffic(e.pixel)
+      map.getTargetElement().style.cursor = edge || z || r ? 'pointer' : ''
       setRouteTip(r ? { text: trafficTip(r), x: e.pixel[0], y: e.pixel[1] } : null)
     }
     map.on('singleclick', onClick)
@@ -156,7 +161,7 @@ export default function Dashboard() {
     traffic.setVisible(layers.has(TRAFFIC_LAYER))
     routes.changed()
     trails.changed()
-  }, [basemap, layers, tab, mode, selectedMapId])
+  }, [basemap, layers, tab, mode, selectedMapId, segCode])
 
   // 지도 가운데(우측 패널 제외) 좌표 → 행정구역 경로
   const size = mapRef.current?.getSize() ?? [1246, 919]
@@ -190,7 +195,7 @@ export default function Dashboard() {
   const focus = location.state
   useEffect(() => {
     if (!focus?.focusSeg) return
-    const s = SEGMENTS.find((x) => x.code === focus.focusSeg)
+    const s = findSegment(focus.focusSeg)
     if (!s) return
     setMode('status')
     setTab('dashboard')
@@ -272,7 +277,7 @@ export default function Dashboard() {
   const filteredBase = BASE_LAYERS.filter((l) => l.includes(layerQuery.trim()))
   const filteredSection = SECTION_LAYERS.filter((l) => l.includes(layerQuery.trim()))
   const legend = LEGENDS[mode]
-  const seg = SEGMENTS.find((s) => s.code === segCode)
+  const seg = findSegment(segCode)
   const vehiclesShown = VEHICLES_GEO
   const zoomLevel = mapRef.current?.getView().getZoom() ?? 10.3
   void tick // 지도 이동 시 다시 그리기
@@ -548,7 +553,7 @@ export default function Dashboard() {
             <DashboardPanel
               region={region.name}
               onShowSegment={(code) => {
-                const s = SEGMENTS.find((x) => x.code === code)
+                const s = findSegment(code)
                 if (isMobile) setPanelOpen(false)
                 setMode('status')
                 setSegCode(code)
@@ -565,17 +570,13 @@ export default function Dashboard() {
 }
 
 // 노선 스타일 — 제설 작업 상태 / 작업 횟수 / 노면 상태
-function routeStyle(f, { mode }) {
-  if (mode === 'status') {
-    return [
-      new Style({ stroke: new Stroke({ color: 'rgba(255,255,255,0.9)', width: 8 }) }),
-      new Style({ stroke: new Stroke({ color: STATE_LINE[f.get('state')], width: 5, lineCap: 'round' }) }),
-    ]
-  }
-  const color = mode === 'count' ? COUNT_COLORS[Math.min(f.get('count'), 5)] : SURFACE_COLORS[f.get('surface')]
+function routeStyle(f, { mode, segCode }) {
+  const color = mode === 'status' ? STATE_LINE[f.get('state')] : mode === 'count' ? COUNT_COLORS[Math.min(f.get('count'), 5)] : SURFACE_COLORS[f.get('surface')]
+  // 선택한 구간은 네이비 테두리로 강조
+  const sel = f.get('code') === segCode
   return [
-    new Style({ stroke: new Stroke({ color: 'rgba(255,255,255,0.9)', width: 8 }) }),
-    new Style({ stroke: new Stroke({ color, width: 5, lineCap: 'round' }) }),
+    new Style({ stroke: new Stroke({ color: sel ? '#07154d' : 'rgba(255,255,255,0.9)', width: sel ? 11 : 8, lineCap: 'round' }), zIndex: sel ? 2 : 0 }),
+    new Style({ stroke: new Stroke({ color, width: sel ? 6 : 5, lineCap: 'round' }), zIndex: sel ? 3 : 1 }),
   ]
 }
 
