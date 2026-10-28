@@ -51,7 +51,7 @@ const segGeo = segAt
 export default function Dashboard() {
   const { setToast } = useOutletContext()
   const location = useLocation()
-  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '재결빙 주의 구간'])) // 구간 외 레이어(교통량 축·우선노선·위험구간)는 켤 때 범례와 함께 표시
+  const [layers, setLayers] = useState(() => new Set(['기상정보', '연속지적도', '적설 감시 CCTV', '재결빙 주의 구간', HAZARD_LAYER])) // 교통량 축·우선노선은 켤 때 범례와 함께 표시
   const isMobile = useMedia(BP.mobile)
   const PANEL_W = isMobile ? 0 : PANEL_DESKTOP // 모바일은 하단 시트라 지도 가로를 가리지 않는다
   const [layerOpen, setLayerOpen] = useState(() => !mq(BP.mobile))
@@ -181,7 +181,7 @@ export default function Dashboard() {
     view.animate({ center: [c[0] + (panelOpen ? (PANEL_W / 2) * res : 0), c[1]], zoom, duration: 450 })
   }
   const fitTo = (coords, duration = 450) => {
-    mapRef.current?.getView().fit(boundingExtent(coords.map((c) => fromLonLat(c))), { padding: isMobile ? [70, 44, 70, 44] : [60, panelOpen ? PANEL_W + 60 : 80, 40, layerOpen ? 245 : 60], duration, maxZoom: 13 })
+    mapRef.current?.getView().fit(boundingExtent(coords.map((c) => fromLonLat(c))), { padding: isMobile ? [70, 44, 70, 44] : [60, panelOpen ? PANEL_W + 60 : 80, 40, layerOpen ? 260 : 60], duration, maxZoom: 13 })
   }
   // 제주 전역 보기 — 처음 열 때와 '제설 작업 상태'로 돌아올 때
   const fitIsland = (duration) => fitTo([...ROUTES.flatMap((r) => r.coords), ...WEATHER_GEO.map((w) => w.at)], duration)

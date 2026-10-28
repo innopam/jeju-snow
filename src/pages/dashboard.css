@@ -40,7 +40,7 @@
 
 /* 레이어 설정 */
 .layer-panel {
-  position: absolute; left: 15px; top: 13px; width: 220px; background: #fff; border-radius: 12px;
+  position: absolute; left: 15px; top: 13px; width: 232px; background: #fff; border-radius: 12px;
   filter: drop-shadow(var(--shadow-float)); z-index: 5;
 }
 .layer-panel__title { width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #e5e5e5; }
@@ -54,7 +54,7 @@
 .layer-group { display: flex; flex-direction: column; gap: 6px; }
 .layer-group + .layer-group { border-top: 1px solid #e5e5e5; padding-top: 12px; }
 .layer-group p { font-size: 10px; font-weight: 700; color: #8e9098; }
-.layer-group button { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #262728; letter-spacing: -0.26px; line-height: 1.5; text-align: left; }
+.layer-group button { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #262728; letter-spacing: -0.26px; line-height: 1.5; text-align: left; white-space: nowrap; }
 
 /* 위치 정보 */
 .breadcrumb {
@@ -348,7 +348,7 @@
   .tool__tip { display: none; }
   .map-tools { top: 13px; }
   .breadcrumb { font-size: 13px; }
-  .layer-panel { width: 210px; }
+  .layer-panel { width: 230px; }
 }
 
 /* 모바일: 우측 패널 → 하단 시트, 지도 컨트롤 축소 */
