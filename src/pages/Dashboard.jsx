@@ -13,7 +13,7 @@ import { Checkbox, Radio } from '../components/Controls.jsx'
 import { VEHICLES } from '../data/dashboard.js'
 import {
   CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SURFACE_COLORS, TRAFFIC_WIDTH,
-  VEHICLES_GEO, WEATHER_GEO, admDongCenter, regionAtGeo, vehicleTrack,
+  ALL_LINKS, VEHICLES_GEO, WEATHER_GEO, admDongCenter, edgeMid, regionAtGeo, vehicleTrack,
 } from '../data/geo.js'
 import { RISK_COLOR, ROUTE_SEGMENTS, SEGMENTS, STATE_COLOR, findSegment, segAt, segName } from '../data/segments.js'
 import { HAS_VWORLD, createBaseLayers, createCadastralLayer } from '../map/basemap.js'
@@ -80,6 +80,8 @@ export default function Dashboard() {
     layers: () => {
       const base = createBaseLayers()
       const cadastral = createCadastralLayer()
+      // 실제 노선 링크 전체 (회색 기본망) — 우선노선·교통량 축보다 아래
+      const network = new VectorLayer({ source: new VectorSource({ features: ALL_LINKS.map((l) => new Feature(new LineString(l.coords.map((c) => fromLonLat(c))))) }), style: NETWORK_STYLE })
       const routes = new VectorLayer({ source: new VectorSource(), style: (f) => routeStyle(f, live.current), updateWhileAnimating: true, updateWhileInteracting: true })
       // 주요 교통량 축: 노선 아래 회색 밴드 (다른 레이어보다 항상 아래)
       const traffic = new VectorLayer({ source: new VectorSource(), style: trafficStyle, updateWhileAnimating: true, updateWhileInteracting: true })
@@ -94,18 +96,18 @@ export default function Dashboard() {
         source: new VectorSource(),
         style: new Style({ stroke: new Stroke({ color: '#37348f', width: 2.5, lineDash: [6, 4] }), fill: new Fill({ color: 'rgba(55,52,143,0.15)' }), image: new CircleStyle({ radius: 4, fill: new Fill({ color: '#fff' }), stroke: new Stroke({ color: '#37348f', width: 2 }) }) }),
       })
-      // 노선 라인: 구간(edge)마다 feature 하나
+      // 노선 라인: 구간(실제 링크)마다 feature 하나
       ROUTES.forEach((r) =>
-        r.coords.slice(0, -1).forEach((a, i) => {
-          const f = new Feature(new LineString([fromLonLat(a), fromLonLat(r.coords[i + 1])]))
+        r.edges.forEach((e, i) => {
+          const f = new Feature(new LineString(e.map((c) => fromLonLat(c))))
           f.setProperties({ route: r.name, idx: i, code: ROUTE_SEGMENTS.find((e) => e.route === r.name && e.idx === i).code, state: r.states[i], count: r.counts[i], surface: r.surface[i] })
           routes.getSource().addFeature(f)
         }),
       )
-      // 위험구간 띠: 노선의 해당 구간(edge) 좌표를 이어 하나의 선으로
+      // 위험구간 띠: 노선의 해당 구간(링크) 좌표를 이어 하나의 선으로
       HAZARD_ZONES.forEach((z) => {
         const r = ROUTES.find((x) => x.name === z.route)
-        const f = new Feature(new LineString(r.coords.slice(z.from, z.to + 2).map((c) => fromLonLat(c))))
+        const f = new Feature(new LineString(r.edges.slice(z.from, z.to + 1).flatMap((e, k) => (k ? e.slice(1) : e)).map((c) => fromLonLat(c))))
         f.setProperties({ hazard: z })
         hazards.getSource().addFeature(f)
       })
@@ -117,8 +119,8 @@ export default function Dashboard() {
           trails.getSource().addFeature(f)
         })
       })
-      layerRefs.current = { base, cadastral, traffic, routes, hazards, trails, measureLayer }
-      return [...base.normal, ...(base.satellite ?? []), ...(cadastral ? [cadastral] : []), traffic, routes, hazards, trails, measureLayer]
+      layerRefs.current = { base, cadastral, network, traffic, routes, hazards, trails, measureLayer }
+      return [...base.normal, ...(base.satellite ?? []), ...(cadastral ? [cadastral] : []), network, traffic, routes, hazards, trails, measureLayer]
     },
   })
 
@@ -344,9 +346,8 @@ export default function Dashboard() {
             </button>
           )
         })}
-        {showEdgeLabels && ROUTES.flatMap((r) => r.coords.slice(0, -1).map((a, i) => {
-          const b = r.coords[i + 1]
-          const p = px([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])
+        {showEdgeLabels && ROUTES.flatMap((r) => r.edges.map((e, i) => {
+          const p = px(edgeMid(e))
           const n = r.counts[i]
           const sf = r.surface[i]
           const color = mode === 'count' ? COUNT_COLORS[Math.min(n, 5)] : SURFACE_COLORS[sf]
@@ -587,6 +588,9 @@ function routeStyle(f, { mode, segCode }) {
 }
 
 // 주요 교통량 축 — 색을 쓰지 않는 회색 밴드(#202224, 16%), 폭 = 교통량 등급
+// 실제 노선 링크 기본망 (Figma 'base bg link' · 전체 링크 387)
+const NETWORK_STYLE = new Style({ stroke: new Stroke({ color: 'rgba(142,150,163,0.75)', width: 1.9, lineCap: 'round', lineJoin: 'round' }) })
+
 function trafficStyle(f) {
   return new Style({ stroke: new Stroke({ color: 'rgba(32,34,36,0.16)', width: TRAFFIC_WIDTH[f.get('trafficRoute').traffic.grade], lineCap: 'round', lineJoin: 'round' }) })
 }
