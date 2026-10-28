@@ -553,13 +553,6 @@ export default function Dashboard() {
           </div>
           {tab === 'dashboard' ? (
             <DashboardPanel
-              onShowSegment={(code) => {
-                const s = findSegment(code)
-                if (isMobile) setPanelOpen(false)
-                setMode('status')
-                setSegCode(code)
-                flyTo(segGeo(s), 12.5)
-              }}
               onShowPlace={(dong) => {
                 const at = admDongCenter(dong)
                 if (!at) return

@@ -124,7 +124,9 @@ export default function Layout() {
   )
 }
 
-const FILTERS = ['전체', '긴급', '미조치', '상습']
+const FILTERS = ['전체', '긴급', '미조치', '재결빙', '상습']
+// '재결빙'은 알림 종류가 아니라 재결빙 위험 구간 알림(refreeze)을 모아 보는 필터
+const matches = (a, f) => f === '전체' || (f === '재결빙' ? a.refreeze : a.type === f)
 
 function AlertDropdown({ alerts, filter, onFilter, onClose, onReadAll, onSelect }) {
   const ref = useRef(null)
@@ -138,8 +140,8 @@ function AlertDropdown({ alerts, filter, onFilter, onClose, onReadAll, onSelect 
       document.removeEventListener('keydown', esc)
     }
   }, [onClose])
-  const list = useMemo(() => (filter === '전체' ? alerts : alerts.filter((a) => a.type === filter)), [alerts, filter])
-  const count = (f) => (f === '전체' ? alerts.length : alerts.filter((a) => a.type === f).length)
+  const list = useMemo(() => alerts.filter((a) => matches(a, filter)), [alerts, filter])
+  const count = (f) => alerts.filter((a) => matches(a, f)).length
 
   return (
     <div className="alert-dd" ref={ref} role="dialog" aria-label="위험 이벤트 알림">

@@ -4,11 +4,8 @@ import { Dropdown } from '../../components/Controls.jsx'
 import { JURISDICTIONS, JUR_DATA, SNOW_STATUS_KEYS } from '../../data/dashboard.js'
 import HazardList from './HazardList.jsx'
 
-// 재결빙 위험 '지도 보기' 대상 구간 (관할별 최우선 구간)
-const TOP_SEG = { 전체: 'K-12', 도청: 'K-12', 제주시: 'B-4', 서귀포시: 'N-3' }
-
 // UI-SIRS-001-01 종합 현황 패널 (⑨~⑫)
-export default function DashboardPanel({ onShowSegment, onShowPlace }) {
+export default function DashboardPanel({ onShowPlace }) {
   const { openAlerts } = useOutletContext()
   const [jur, setJur] = useState('전체')
   const d = JUR_DATA[jur]
@@ -44,7 +41,7 @@ export default function DashboardPanel({ onShowSegment, onShowPlace }) {
             <p><b>재결빙 위험 {d.refreeze}구간</b><em>조치 필요</em></p>
             <small>최우선 {d.refreezeTop}</small>
           </div>
-          <button onClick={() => onShowSegment(TOP_SEG[jur])}>지도 보기 ›</button>
+          <button data-open-alerts onClick={() => openAlerts('재결빙')}>목록 보기 ›</button>
         </div>
         <div>
           <span className="warn-banner__ic">!</span>
