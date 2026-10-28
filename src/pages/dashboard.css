@@ -96,14 +96,14 @@
 .seg-pop dd { margin: 0; color: #222; white-space: nowrap; }
 
 /* 범례 */
-.legend { position: absolute; right: calc(var(--panel-w) + 16px); bottom: 19px; width: 104px; max-height: calc(100% - 140px); overflow-y: auto; background: #fff; border-radius: 8px; padding: 12px 14px; z-index: 4; transition: right .25s; }
+.legend { position: absolute; right: calc(var(--panel-w) + 16px); bottom: 19px; min-width: 104px; max-height: calc(100% - 140px); overflow-y: auto; background: #fff; border-radius: 8px; padding: 12px 14px; z-index: 4; transition: right .25s; }
 .legend__head { width: 100%; display: flex; justify-content: space-between; align-items: center; }
 .legend__head b { font-size: 11px; color: #222; }
 .legend__head img { width: 18px; height: 18px; transition: transform .2s; }
 .legend.closed .legend__head img { transform: rotate(180deg); }
 .legend__body { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
 .legend__body p { font-size: 10px; font-weight: 700; color: #999; }
-.legend__body span { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #555; }
+.legend__body span { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #555; white-space: nowrap; }
 .legend__body i { width: 14px; height: 4px; border-radius: 2px; }
 .legend__body img { width: 14px; height: 4px; }
 .legend__body .legend__hazard { gap: 6px; font-size: 10px; color: #1f2024; }
@@ -241,9 +241,21 @@
   background-image: linear-gradient(rgba(120, 100, 80, .5) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 100, 80, .5) 1px, transparent 1px);
   background-size: 22px 18px;
 }
-.route-tag { position: absolute; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; pointer-events: none; }
-.route-tag.priority { background: #37348f; color: #fff; }
-.route-tag.traffic { background: #fff; color: #37348f; border: 1px solid #9b98dc; }
+/* 주요 교통량 축 — 축 이름·등급 라벨 (회색 밴드는 OpenLayers 레이어) */
+.traffic-label { position: absolute; transform: translate(-50%, -50%); padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,.9); font-size: 11px; font-weight: 500; color: #555; letter-spacing: -0.11px; white-space: nowrap; line-height: 1; }
+/* 제설 우선노선 — 노선을 따라 반복되는 네이비 순위 배지 · 끝점 */
+.priority-badge { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #07154d; color: #fff; font-size: 11px; font-weight: 500; letter-spacing: -0.11px; white-space: nowrap; line-height: 1; z-index: 1; }
+.priority-badge em { width: 6px; height: 6px; border-radius: 50%; background: #f93c65; box-shadow: 0 0 0 1.5px #fff; }
+.priority-badge:hover { background: #1b2a6b; }
+.priority-end { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; border: 2px solid #07154d; box-sizing: border-box; }
+.route-tip { position: absolute; transform: translate(-50%, calc(-100% - 10px)); padding: 6px 10px; border-radius: 6px; background: #202224; color: #fff; font-size: 11px; white-space: nowrap; z-index: 6; }
+/* 범례 · 구간 정보 */
+.legend__body .legend__traffic i { width: 16px; border-radius: 4px; background: rgba(32,34,36,.28); }
+.legend__body .legend__priority { gap: 6px; font-size: 10px; color: #1f2024; }
+.legend__body .legend__priority i { width: 16px; height: 8px; border-radius: 4px; background: #07154d; position: relative; }
+.legend__body .legend__priority i.late::after { content: ''; position: absolute; right: -2px; top: -2px; width: 5px; height: 5px; border-radius: 50%; background: #f93c65; box-shadow: 0 0 0 1px #fff; }
+.legend__body .legend__priority i.end { height: 2px; border-radius: 1px; background: #9198a5; }
+.legend__body .legend__priority i.end::after { content: ''; position: absolute; right: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: #fff; border: 1.5px solid #07154d; box-sizing: border-box; }
 .trail { transition: opacity .2s; }
 .trail.dim { opacity: .25; }
 .trail.on { filter: drop-shadow(0 0 3px rgba(55, 52, 143, .6)); }
@@ -316,7 +328,7 @@
 .measuring .olmap { cursor: crosshair; }
 .map-overlays { position: absolute; inset: 0; pointer-events: none; overflow: clip; }
 .map-overlays > * { pointer-events: auto; }
-.map-overlays > .wx, .map-overlays > .route-tag, .map-overlays > .veh-ring, .map-overlays > .count-label { pointer-events: none; }
+.map-overlays > .wx, .map-overlays > .traffic-label, .map-overlays > .priority-end, .map-overlays > .route-tip, .map-overlays > .veh-ring, .map-overlays > .count-label { pointer-events: none; }
 .map-overlays .count-label { white-space: nowrap; }
 .olmap .ol-attribution { left: 12px; right: auto; bottom: 8px; border-radius: 4px; background: rgba(255,255,255,.85); font-size: 10px; max-width: 520px; }
 .olmap .ol-attribution button { display: none; }

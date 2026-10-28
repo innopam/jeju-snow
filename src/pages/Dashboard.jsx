@@ -12,7 +12,7 @@ import { A, VEHICLE_ICONS } from '../assets.js'
 import { Checkbox, Radio } from '../components/Controls.jsx'
 import { VEHICLES } from '../data/dashboard.js'
 import {
-  CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SEGMENTS_GEO, SURFACE_COLORS,
+  CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SEGMENTS_GEO, SURFACE_COLORS, TRAFFIC_WIDTH,
   VEHICLES_GEO, WEATHER_GEO, nearestRegionGeo, vehicleTrack,
 } from '../data/geo.js'
 import { RISK_COLOR, SEGMENTS, STATE_COLOR, segName } from '../data/segments.js'
@@ -38,6 +38,8 @@ const LEGENDS = {
   surface: { title: '도로상태', items: Object.entries(SURFACE_COLORS).map(([k, c]) => [c, k]) },
 }
 const HAZARD_LAYER = '블랙아이스·적설·결빙 위험구간'
+const TRAFFIC_LAYER = '주요 교통량 축'
+const PRIORITY_LAYER = '제설 우선노선'
 const HAZARD_LEGEND = Object.entries(HAZARD_COLORS)
 const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
 const PANEL_DESKTOP = 380
@@ -56,6 +58,7 @@ export default function Dashboard() {
   const [basemap, setBasemap] = useState('normal')
   const [tab, setTab] = useState('dashboard')
   const [panelOpen, setPanelOpen] = useState(() => !mq(BP.narrow))
+  const [routeTip, setRouteTip] = useState(null) // 교통량 축·우선노선 툴팁 { text, x, y }
   const [legendOpen, setLegendOpen] = useState(() => !mq(BP.mobile))
   const [segCode, setSegCode] = useState(() => (mq(BP.mobile) ? null : 'K-12'))
   const [selected, setSelected] = useState(null) // VEHICLES index
@@ -76,6 +79,13 @@ export default function Dashboard() {
       const base = createBaseLayers()
       const cadastral = createCadastralLayer()
       const routes = new VectorLayer({ source: new VectorSource(), style: (f) => routeStyle(f, live.current), updateWhileAnimating: true, updateWhileInteracting: true })
+      // 주요 교통량 축: 노선 아래 회색 밴드 (다른 레이어보다 항상 아래)
+      const traffic = new VectorLayer({ source: new VectorSource(), style: trafficStyle, updateWhileAnimating: true, updateWhileInteracting: true })
+      ROUTES.filter((r) => r.traffic).forEach((r) => {
+        const f = new Feature(new LineString(r.coords.map((c) => fromLonLat(c))))
+        f.setProperties({ trafficRoute: r })
+        traffic.getSource().addFeature(f)
+      })
       const hazards = new VectorLayer({ source: new VectorSource(), style: hazardStyle, updateWhileAnimating: true, updateWhileInteracting: true })
       const trails = new VectorLayer({ source: new VectorSource(), style: (f) => trailStyle(f, live.current) })
       const measureLayer = new VectorLayer({
@@ -105,22 +115,32 @@ export default function Dashboard() {
           trails.getSource().addFeature(f)
         })
       })
-      layerRefs.current = { base, cadastral, routes, hazards, trails, measureLayer }
-      return [...base.normal, ...(base.satellite ?? []), ...(cadastral ? [cadastral] : []), routes, hazards, trails, measureLayer]
+      layerRefs.current = { base, cadastral, traffic, routes, hazards, trails, measureLayer }
+      return [...base.normal, ...(base.satellite ?? []), ...(cadastral ? [cadastral] : []), traffic, routes, hazards, trails, measureLayer]
     },
   })
 
   // 위험구간 띠 클릭 → 해당 구간 정보 팝업, 마우스를 올리면 포인터 커서
   useEffect(() => {
     const map = mapRef.current
-    const { hazards } = layerRefs.current
+    const { hazards, traffic } = layerRefs.current
     const hit = (pixel) => map.forEachFeatureAtPixel(pixel, (f) => f.get('hazard'), { layerFilter: (l) => l === hazards, hitTolerance: 4 })
+    const hitTraffic = (pixel) => map.forEachFeatureAtPixel(pixel, (f) => f.get('trafficRoute'), { layerFilter: (l) => l === traffic, hitTolerance: 2 })
     const onClick = (e) => {
       if (drawRef.current) return
       const z = hit(e.pixel)
-      if (z) { setSegCode(z.seg); setTab('dashboard') }
+      if (z) { setSegCode(z.seg); setTab('dashboard'); return }
+      const r = hitTraffic(e.pixel)
+      const s = r && SEGMENTS.find((x) => x.road === r.name)
+      if (s) { setSegCode(s.code); setTab('dashboard') }
     }
-    const onMove = (e) => { if (!e.dragging) map.getTargetElement().style.cursor = !drawRef.current && hit(e.pixel) ? 'pointer' : '' }
+    const onMove = (e) => {
+      if (e.dragging || drawRef.current) return
+      const z = hit(e.pixel)
+      const r = !z && hitTraffic(e.pixel)
+      map.getTargetElement().style.cursor = z || r ? 'pointer' : ''
+      setRouteTip(r ? { text: trafficTip(r), x: e.pixel[0], y: e.pixel[1] } : null)
+    }
     map.on('singleclick', onClick)
     map.on('pointermove', onMove)
     return () => { map.un('singleclick', onClick); map.un('pointermove', onMove) }
@@ -128,11 +148,12 @@ export default function Dashboard() {
 
   // 레이어 표시 상태 동기화
   useEffect(() => {
-    const { base, cadastral, routes, hazards, trails } = layerRefs.current
+    const { base, cadastral, traffic, routes, hazards, trails } = layerRefs.current
     base.normal.forEach((l) => l.setVisible(basemap === 'normal' || !base.satellite))
     base.satellite?.forEach((l) => l.setVisible(basemap === 'satellite'))
     cadastral?.setVisible(layers.has('연속지적도'))
     hazards.setVisible(layers.has(HAZARD_LAYER))
+    traffic.setVisible(layers.has(TRAFFIC_LAYER))
     routes.changed()
     trails.changed()
   }, [basemap, layers, tab, mode, selectedMapId])
@@ -267,10 +288,33 @@ export default function Dashboard() {
       {/* ── 지도 (OpenLayers) ───────────────────────── */}
       <div ref={elRef} className={`olmap${basemap === 'satellite' && !HAS_VWORLD ? ' satellite-sim' : ''}`} />
       <div className="map-overlays">
-        {island && showLayer('제설 우선노선') &&
-          ROUTES.filter((r) => r.priority).map((r) => { const p = px(routeMid(r)); return <span key={`p-${r.name}`} className="route-tag priority" style={{ left: p[0], top: p[1] - 14 }}>우선 · {r.name}</span> })}
-        {island && showLayer('주요 교통량 축') &&
-          ROUTES.filter((r) => r.traffic).map((r) => { const p = px(r.coords[1]); return <span key={`t-${r.name}`} className="route-tag traffic" style={{ left: p[0], top: p[1] + 14 }}>교통량 축</span> })}
+        {island && showLayer(TRAFFIC_LAYER) &&
+          ROUTES.filter((r) => r.traffic).map((r) => { const p = px(routeMid(r)); return <span key={`t-${r.name}`} className="traffic-label" style={{ left: p[0], top: p[1] }}>{r.name.replace('도로', '')} 축 · {r.traffic.grade}등급</span> })}
+        {island && showLayer(PRIORITY_LAYER) &&
+          ROUTES.filter((r) => r.priority).flatMap((r) => {
+            const pts = r.coords.map(px)
+            const late = r.priority === 1 && r.states.includes('미작업') // 우선인데 아직 안 됨
+            const seg = SEGMENTS.find((x) => x.road === r.name)
+            const tip = `${r.name}${seg ? ` ${seg.code}` : ''} · 우선노선 ${r.priority}순위 · ${late ? `미작업 ${r.states.filter((x) => x === '미작업').length}구간` : '미작업 없음'}${seg ? ' · 클릭하면 상세' : ''}`
+            const open = () => { if (seg) { setSegCode(seg.code); setTab('dashboard') } }
+            return [
+              ...[pts[0], pts[pts.length - 1]].map((p, i) => <i key={`pe-${r.name}-${i}`} className="priority-end" style={{ left: p[0], top: p[1] }} />),
+              ...badgeSpots(pts, 300).map((p, i) => (
+                <button
+                  key={`pb-${r.name}-${i}`}
+                  className="priority-badge"
+                  style={{ left: p[0], top: p[1] }}
+                  onClick={open}
+                  onMouseEnter={() => setRouteTip({ text: tip, x: p[0], y: p[1] - 14 })}
+                  onMouseLeave={() => setRouteTip(null)}
+                >
+                  {r.priority}순위{i === 0 && ` · ${r.name}`}
+                  {late && <em />}
+                </button>
+              )),
+            ]
+          })}
+        {routeTip && <span className="route-tip" style={{ left: routeTip.x, top: routeTip.y }}>{routeTip.text}</span>}
         {island && showLayer('적설 감시 CCTV') &&
           CCTV_GEO.map((c) => { const p = px(c.at); return (
             <button key={c.id} className="cctv" style={{ left: p[0] - 12, top: p[1] - 12 }} onClick={() => setToast(`적설 감시 CCTV #${c.id} 영상 연결 (목업)`)} title={`적설 감시 CCTV #${c.id}`}>
@@ -465,6 +509,17 @@ export default function Dashboard() {
                 {l}
               </span>
             ))}
+            {(showLayer(TRAFFIC_LAYER) || showLayer(PRIORITY_LAYER)) && <p>구간 정보</p>}
+            {showLayer(TRAFFIC_LAYER) && [1, 2, 3].map((g) => (
+              <span key={`tl-${g}`} className="legend__traffic"><i style={{ height: TRAFFIC_WIDTH[g] / 2 }} />{g}등급 축</span>
+            ))}
+            {showLayer(PRIORITY_LAYER) && (
+              <>
+                <span className="legend__priority"><i className="badge" />순위 배지 1~3</span>
+                <span className="legend__priority"><i className="badge late" />1순위 미작업</span>
+                <span className="legend__priority"><i className="end" />노선 끝점</span>
+              </>
+            )}
             {showLayer(HAZARD_LAYER) && HAZARD_LEGEND.map(([l, c]) => (
               <span key={l} className="legend__hazard"><i style={{ background: c }} />{l}</span>
             ))}
@@ -522,6 +577,31 @@ function routeStyle(f, { mode }) {
     new Style({ stroke: new Stroke({ color: 'rgba(255,255,255,0.9)', width: 8 }) }),
     new Style({ stroke: new Stroke({ color, width: 5, lineCap: 'round' }) }),
   ]
+}
+
+// 주요 교통량 축 — 색을 쓰지 않는 회색 밴드(#202224, 16%), 폭 = 교통량 등급
+function trafficStyle(f) {
+  return new Style({ stroke: new Stroke({ color: 'rgba(32,34,36,0.16)', width: TRAFFIC_WIDTH[f.get('trafficRoute').traffic.grade], lineCap: 'round', lineJoin: 'round' }) })
+}
+const trafficTip = (r) => `${r.name} · 교통량 축 ${r.traffic.grade}등급 · 일 ${r.traffic.daily}만 대`
+
+// 제설 우선노선 배지 위치 — 화면상 노선을 따라 약 gap(px) 간격, 첫 배지는 gap/2 지점
+function badgeSpots(pts, gap) {
+  const out = []
+  let next = gap / 2
+  let acc = 0
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1]
+    const [bx, by] = pts[i]
+    const len = Math.hypot(bx - ax, by - ay)
+    while (len && acc + len >= next) {
+      const k = (next - acc) / len
+      out.push([ax + (bx - ax) * k, ay + (by - ay) * k])
+      next += gap
+    }
+    acc += len
+  }
+  return out.length ? out : [pts[Math.floor(pts.length / 2)]]
 }
 
 // 블랙아이스·적설·결빙 위험구간 — 색 = 위험 유형, 굵기 = 위험 등급, 60% 투명도로 도로 라인 위에 겹침
