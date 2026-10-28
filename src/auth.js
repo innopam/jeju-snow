@@ -44,3 +44,18 @@ export function logout() {
 
 // 권한별 접근 가능 메뉴 (데이터 연계 모니터링은 관리자 전용 — UC-OMS-001 주요 액터: 관리자)
 export const canAccess = (session, path) => !(path === '/monitoring' && session?.role !== ROLES.ADMIN)
+
+// 목업 시연용 — 이 탭에서 처음 접속하면 관리자로 로그인된 상태로 바로 대시보드를 연다.
+// 로그아웃하면 세션 값이 null 로 남아 그 뒤로는 로그인 화면이 정상적으로 뜬다.
+const firstVisit = (() => {
+  try {
+    return window.sessionStorage.getItem('jeju-snow.session') === null
+  } catch {
+    return false
+  }
+})()
+if (firstVisit) {
+  const { pw: _pw, ...profile } = DEMO_USERS[0]
+  sessionStore.set({ ...profile, loginAt: now() })
+  log(profile.id, '로그인(자동)')
+}
