@@ -106,6 +106,7 @@ export default function Monitoring() {
   return (
     <div className="page-scroll">
       <div className="mon">
+        <h2 className="page-title">데이터 연계 모니터링</h2>
         <section className="mcard">
           <div className="mcard__head">
             <h3>배치 스케줄 관리</h3>

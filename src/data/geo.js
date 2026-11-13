@@ -106,12 +106,12 @@ export const SURFACE_COLORS = { 오류: '#334155', 건조: '#22c55e', 습기: '#
 // 주요 교통량 축 밴드 폭(px) — 1·2·3등급
 export const TRAFFIC_WIDTH = { 1: 20, 2: 14, 3: 10 }
 
-// 블랙아이스·적설·결빙 위험구간 (UI-SIRS-001-006) — 도로 라인 위 반투명 띠: 색 = 위험 유형, 굵기 = 위험 등급
+// 적설·결빙 위험구간 (UI-SIRS-001-006) — 도로 라인 위 반투명 띠: 색 = 위험 유형, 굵기 = 위험 등급
 // from·to 는 via 구간 번호로 적고, 아래에서 실제 링크 구간(edges) 번호 범위로 바꾼다
-export const HAZARD_COLORS = { 블랙아이스: '#6d28d9', 적설: '#0ea5e9', 결빙: '#1447e6' }
+export const HAZARD_COLORS = { 적설: '#0ea5e9', 결빙: '#1447e6' }
 export const HAZARD_WIDTH = { 심각: 16, 경계: 12, 주의: 8 }
 export const HAZARD_ZONES = [
-  { route: '1100도로', from: 1, to: 3, type: '블랙아이스', grade: '심각', action: '미조치', seg: 'K-12', place: 'K-12 성판악' },
+  { route: '1100도로', from: 1, to: 3, type: '결빙', grade: '심각', action: '미조치', seg: 'K-12', place: 'K-12 성판악' },
   { route: '5·16도로', from: 1, to: 3, type: '적설', grade: '경계', action: '조치중', seg: 'K-16-2', place: '교래' },
   { route: '평화로', from: 1, to: 3, type: '결빙', grade: '경계', action: '미조치', seg: 'P-2', place: '광령' },
   { route: '번영로', from: 0, to: 1, type: '결빙', grade: '주의', action: '조치중', seg: 'B-4', place: '대천' },
@@ -164,14 +164,14 @@ export const CCTV_GEO = [
 ].map((at, i) => ({ id: i + 1, at }))
 
 export const WEATHER_GEO = [
-  { name: '제주시', temp: 1.8, icon: A.wxCloud, at: [126.53, 33.5] },
-  { name: '애월', temp: -0.5, icon: A.wxSnow, at: [126.33, 33.46] },
-  { name: '조천', temp: 1.2, icon: A.wxSunCloud, at: [126.64, 33.54] },
-  { name: '한라산', temp: -4.6, icon: A.wxSnow, at: [126.53, 33.36] },
-  { name: '안덕', temp: 0.3, icon: A.wxRainSnow, at: [126.36, 33.25] },
-  { name: '대정', temp: 2.1, icon: A.wxSunCloud, at: [126.25, 33.22] },
-  { name: '서귀포', temp: 2.6, icon: A.wxCloud, at: [126.56, 33.25] },
-  { name: '남원', temp: 0.9, icon: A.wxRainSnow, at: [126.72, 33.28] },
+  { name: '제주시', temp: 1.8, icon: A.wxCloud, sky: '흐림', at: [126.53, 33.5] },
+  { name: '애월', temp: -0.5, icon: A.wxSnow, sky: '눈', at: [126.33, 33.46] },
+  { name: '조천', temp: 1.2, icon: A.wxSunCloud, sky: '구름조금', at: [126.64, 33.54] },
+  { name: '한라산', temp: -4.6, icon: A.wxSnow, sky: '눈', at: [126.53, 33.36] },
+  { name: '안덕', temp: 0.3, icon: A.wxRainSnow, sky: '진눈깨비', at: [126.36, 33.25] },
+  { name: '대정', temp: 2.1, icon: A.wxSunCloud, sky: '구름조금', at: [126.25, 33.22] },
+  { name: '서귀포', temp: 2.6, icon: A.wxCloud, sky: '흐림', at: [126.56, 33.25] },
+  { name: '남원', temp: 0.9, icon: A.wxRainSnow, sky: '진눈깨비', at: [126.72, 33.28] },
 ]
 
 // 읍면 대표 좌표 — 노선 구간의 대략적인 위치 이름(구간 팝업 등)에 사용

@@ -27,30 +27,7 @@
 .fcard__line b.tag { font-size: 9px; }
 .fcard__line span { font-size: 8.5px; color: #999; }
 
-.fpanel { position: absolute; background: #fff; border: 1px solid var(--border-divider); border-radius: 4px; }
-.fpanel h3 { margin: 0; font-size: 14px; font-weight: 700; color: #111; }
-.fpanel--bottom { left: 18px; top: 687px; width: 906px; height: 216px; z-index: 5; }
-.fpanel--bottom h3 { position: absolute; left: 16px; top: 16px; }
-.vbars { position: absolute; top: 46px; width: 426px; height: 152px; }
-.vbars > p { font-size: 12px; font-weight: 500; color: #222; line-height: 1; }
-.vbars__plot { position: absolute; left: 0; top: 18px; width: 426px; height: 114px; border-bottom: 1px solid #edeff3; }
-.vbars__item { position: absolute; bottom: 0; height: 114px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
-.vbars__item small { font-size: 10px; color: #777; margin-bottom: 2px; }
-.vbars__item i { width: 100%; border-radius: 2px 2px 0 0; transition: filter .15s; }
-.vbars__item:hover i { filter: brightness(.9); }
-.vbars__item em { position: absolute; top: calc(100% + 6px); font-style: normal; font-size: 10px; color: #777; white-space: nowrap; }
-
-.fcol { position: absolute; left: 936px; top: 16px; width: 294px; display: flex; flex-direction: column; gap: 12px; z-index: 5; }
-.fpanel--rank { position: relative; height: 481px; }
-.rank__head { display: flex; justify-content: space-between; align-items: center; padding: 14px 10px 0 14px; }
-.rank__head h3 { font-size: 12px; color: #222; }
-.rank__head button { font-size: 9px; color: #2563eb; }
-.rank__sub { padding: 8px 8px 0; font-size: 9px; color: #999; white-space: nowrap; }
-.rank__legend { display: flex; gap: 10px; padding: 6px 8px 0; }
-.rank__legend span { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #999; white-space: nowrap; }
-.rank__legend i { width: 8px; height: 8px; border-radius: 2px; }
-.rank__legend i.goal { width: 1.5px; height: 10px; border-radius: 0; background: #ff4d55; }
-.rank__list { position: absolute; left: 8px; top: 71px; width: 276px; height: 360px; overflow-y: auto; scrollbar-width: thin; }
+.rank__list { flex: none; width: 339px; height: 360px; overflow-y: auto; scrollbar-width: thin; }
 .rank-row { display: flex; align-items: center; gap: 8px; height: 60px; padding: 0 10px; border-bottom: 1px solid #edeff3; background: #fff; position: relative; }
 .rank-row.top { background: #f1f4f9; }
 .rank-row.top::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #4880ff; }
@@ -67,27 +44,18 @@
 .rank-row__val { display: flex; align-items: baseline; gap: 2px; white-space: nowrap; }
 .rank-row__val b { font-size: 17px; }
 .rank-row__val small { font-size: 9px; }
-.rank__sum { position: absolute; left: 8px; top: 441px; width: 276px; display: flex; gap: 6px; background: #f2f4f7; border-radius: 4px; padding: 8px 10px; font-size: 9px; white-space: nowrap; }
-.rank__sum b { color: #222; }
-.rank__sum span { color: #999; }
 
-.fpanel--weak { position: relative; height: 394px; }
-.fpanel--weak h3 { padding: 14px 16px 0; height: 35px; border-bottom: 1px solid #f1f1f1; margin: 0 16px 0 0; padding-left: 16px; }
-.weak__title { padding: 12px 14px 0; font-size: 12px; font-weight: 700; color: #222; }
-.weak__rows { display: flex; flex-direction: column; height: 254px; margin: 12px 14px 0; }
-.weak-row { flex: 1; display: flex; align-items: center; gap: 16px; padding: 2px 8px; border-radius: 8px; text-align: left; border-bottom: 1px solid #f2f4f7; }
+.weak__rows { flex: none; display: flex; flex-direction: column; height: 254px; }
+.weak-row { flex: 1; display: flex; align-items: center; gap: 15px; padding: 2px 8px; border-radius: 8px; text-align: left; background: #f4f5f7; border-bottom: 1px solid #fff; }
 .weak-row:last-child { border-bottom: 0; }
-.weak-row.on { background: #f4f5f7; }
-.weak-row:hover:not(.on) { background: #fafbfc; }
+.weak-row.on { background: #e8e7fb; box-shadow: inset 0 0 0 1.5px #37348f; }
+.weak-row:hover:not(.on) { background: #eceef2; }
 .weak-row > small { font-size: 11px; color: #222; }
-.weak-row__main { width: 137px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
-.weak-row__main .badge { height: 15px; padding: 0 4px; }
+.weak-row__main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.weak-row__main .badge { height: 15px; width: 47px; padding: 0 4px; flex: none; }
 .weak-row__main b { font-size: 12px; color: #222; white-space: nowrap; }
 .weak-row strong { font-size: 17px; margin-left: auto; white-space: nowrap; }
 @keyframes halo { 50% { opacity: .55; } }
-.fcard:not(.on) { opacity: .92; }
-.fusion.has-sel .fcard:not(.on) { opacity: .55; }
-.fusion.has-sel .fcard:not(.on):hover { opacity: 1; }
 
 /* ── 교차 분석 지도 (OpenLayers) ─────────────── */
 .fusion__ol { position: absolute; inset: 0; min-height: 915px; background: #aad3df; }
@@ -105,12 +73,6 @@
 
 /* ── 레이아웃 정리 (유동 막대 · 지도 래퍼) ───────── */
 .fusion__mapwrap { position: absolute; inset: 0; min-height: 915px; }
-.fpanel--bottom { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; padding: 46px 16px 0; }
-.fpanel--bottom .vbars { position: relative; left: auto; top: auto; width: auto; height: 152px; }
-.vbars__plot { left: 0; right: 0; width: auto; display: flex; align-items: flex-end; gap: 8px; }
-.vbars__item { position: relative; flex: 1; min-width: 0; bottom: auto; }
-.rank__list, .rank__sum { width: auto; right: 8px; }
-
 /* 태블릿·모바일: 지도 → 기상조건 차트 → 대응시간 · 취약구간 순서로 쌓음 */
 @media (max-width: 1279px) {
   .fusion { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
@@ -120,11 +82,7 @@
   .fusion__ol .ol-attribution { top: auto; bottom: 8px; left: 8px; }
   .fusion__ol .ol-scale-line { top: auto; bottom: 34px; right: 10px; }
   .fusion__note { top: 10px; left: 10px; bottom: auto; }
-  .fpanel--bottom, .fcol { position: relative; left: auto; top: auto; width: auto; flex: none; }
-  .fpanel--bottom { height: auto; padding-bottom: 18px; }
-  .fpanel--bottom .vbars { height: 160px; }
-  .fcol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
-}
+      }
 @media (max-width: 767px) {
   .fusion { padding: 10px; gap: 10px; }
   .fusion__mapwrap { height: 58vh; min-height: 380px; }
@@ -132,22 +90,98 @@
   .fcard:not(.on) { display: none; }
   .fcard.on { left: 8px !important; right: 8px; top: auto !important; bottom: 8px; width: auto !important; }
   .fcard__head { flex-wrap: wrap; }
-  .fpanel--bottom { grid-template-columns: minmax(0, 1fr); row-gap: 28px; }
-  .fpanel--bottom h3, .rank__head h3 { font-size: 13px; }
-  .fcol { grid-template-columns: minmax(0, 1fr); }
-  .rank__sub, .rank__legend { white-space: normal; flex-wrap: wrap; }
-  .rank__legend span { white-space: normal; }
-  .rank-row__bar { width: 100%; max-width: 180px; }
-}
+    }
 
 /* 데스크톱: 지도가 화면 전체를 채우고, 분석 카드는 지도 위 가장자리에 붙는다 */
 @media (min-width: 1280px) {
   .fusion { overflow: hidden; }
   .fusion::after { display: none; }
   .fusion__mapwrap, .fusion__ol { min-height: 0; }
-  .fpanel--bottom { left: 16px; right: 326px; top: auto; bottom: 16px; width: auto; height: 216px; }
-  .fcol { left: auto; right: 16px; top: 16px; width: 294px; max-height: calc(100% - 32px); overflow-y: auto; scrollbar-width: thin; }
-  .fusion__ol .ol-attribution { top: auto; bottom: 240px; left: 16px; }
-  .fusion__ol .ol-scale-line { top: auto; bottom: 240px; right: 326px; }
-  .fusion__note { top: auto; bottom: 266px; left: 16px; }
+      .fusion__ol .ol-attribution { top: auto; bottom: 16px; left: 16px; }
+  .fusion__ol .ol-scale-line { top: auto; bottom: 16px; right: 442px; }
+  .fusion__note { top: auto; bottom: 42px; left: 16px; }
+}
+
+/* ── 분석 조건 카드 (899:14854) ─────────────── */
+.fcond {
+  position: absolute; left: 24px; top: 16px; right: 442px; z-index: 6; display: flex; align-items: flex-start; gap: 16px;
+  padding: 12px 16px 10px; background: #fff; border: 1px solid var(--border-divider); border-radius: 4px; box-shadow: 0 2px 8px rgba(15, 23, 41, .12);
+}
+.fcond__field { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.fcond__field small { font-size: 12px; font-weight: 500; line-height: 1; color: #999; letter-spacing: -0.12px; }
+.fcond__actions { display: flex; gap: 8px; height: 58px; padding-top: 18px; align-items: center; flex: none; }
+.fcond__actions button { width: 84px; }
+
+/* ── 우측 분석 패널 (890:31141 · 898:31786) — 380px 패널을 1.12배 확대 ─── */
+.fside {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 380px; zoom: 1.12; z-index: 7; background: #fff; border-left: 1px solid #e4e7ec;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, .08); padding: 18px 20px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; scrollbar-width: thin;
+}
+.fside > * { flex: none; }
+.fside__basis { margin: 0; padding: 8px 10px; border-radius: 6px; background: #f5f6fa; font-size: 11px; line-height: 1.4; color: #777; }
+.fside__head { display: flex; align-items: center; gap: 9px; height: 32px; }
+.fside__head small { font-size: 11px; line-height: 1.4; color: #777; white-space: nowrap; }
+.fside__title { flex: 1; display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; font-weight: 700; line-height: 1.4; color: #111; letter-spacing: -0.14px; white-space: nowrap; }
+.fside__title::before { content: ''; width: 4px; height: 16px; border-radius: 3px; background: #3867e8; flex: none; }
+.fside__sort { color: #2563eb; }
+.fside__legend { display: flex; align-items: center; gap: 12px; }
+.fside__legend > span { display: flex; align-items: center; gap: 4px; font-size: 10px; line-height: 1.4; color: #777; white-space: nowrap; }
+.fside__legend i { width: 8px; height: 8px; border-radius: 2px; }
+.fside__legend--grade { gap: 10px; }
+.fside__note { margin: 0; font-size: 10px; line-height: 1.4; color: #777; }
+.fside__hr { width: 100%; height: 1px; margin: 0; border: 0; background: #e5e7eb; }
+
+.wxbars { display: flex; flex-direction: column; gap: 8px; }
+.wxbars__row { display: flex; align-items: center; gap: 8px; font-size: 11px; line-height: 1.4; color: #111; }
+.wxbars__row > span:first-child { width: 118px; flex: none; font-weight: 500; white-space: nowrap; }
+.wxbars__bar { display: flex; width: 176px; height: 14px; flex: none; }
+.wxbars__bar i { height: 100%; transition: width .3s; }
+.wxbars__row b { width: 29px; text-align: right; flex: none; }
+
+.matrix { display: flex; flex-direction: column; gap: 4px; }
+.matrix__row { display: flex; align-items: center; gap: 4px; }
+.matrix__row > span:first-child { width: 64px; flex: none; font-size: 11px; font-weight: 500; line-height: 1.4; color: #111; white-space: nowrap; }
+.matrix__row--th > span { flex: 1; text-align: center; font-size: 10px; font-weight: 500; line-height: 1.4; color: #777; }
+.matrix__row--th > span:first-child { flex: none; text-align: left; font-size: 10px; color: #777; }
+.matrix__row button { flex: 1; min-width: 0; padding: 7px 0; border-radius: 4px; font-size: 11px; font-weight: 700; line-height: 1.4; }
+.matrix__row button:hover { filter: brightness(.95); }
+.matrix__row button.on { box-shadow: inset 0 0 0 2px #37348f; }
+
+.sbars { display: flex; align-items: flex-end; gap: 6px; }
+.sbars__item { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.sbars__item small, .sbars__item em { font-size: 10px; line-height: 1.4; color: #777; font-style: normal; white-space: nowrap; }
+.sbars__item small { font-weight: 500; }
+.sbars__item i { width: 100%; border-radius: 3px 3px 0 0; }
+
+.fsum { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid #d6e2ff; border-radius: 8px; background: #f5f8ff; }
+.fsum__row { display: flex; align-items: flex-start; gap: 8px; }
+.fsum__row em { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; line-height: 1.4; font-style: normal; flex: none; }
+.fsum__row p { margin: 0; display: flex; flex-direction: column; gap: 1px; font-size: 11px; line-height: 1.4; }
+.fsum__row b { color: #111; }
+.fsum__row span { color: #777; }
+
+/* 탭 2 — 시안은 확대하지 않은 원본 치수라 패널 확대(1.12배)를 되돌린다 */
+.fside .rank__list, .fside .weak__rows, .fside .fside__head--sm { zoom: calc(1 / 1.12); }
+.fside .fside__head--sm { height: 32px; }
+.fside .fside__head--sm .fside__title { font-size: 14px; color: #222; }
+.fside .fside__sort { font-size: 11px; }
+
+/* 태블릿·모바일: 지도 → 분석 조건 → 분석 패널 순서로 쌓음 */
+@media (max-width: 1279px) {
+  .fcond { position: relative; left: auto; top: auto; right: auto; flex-wrap: wrap; order: -1; }
+  .fside { position: relative; right: auto; top: auto; bottom: auto; width: auto; zoom: 1; overflow: visible; border: 1px solid var(--border-divider); border-radius: 8px; box-shadow: none; }
+  .fside .rank__list, .fside .weak__rows, .fside .fside__head--sm { zoom: 1; }
+  .fside .rank__list { width: 100%; }
+}
+@media (max-width: 767px) {
+  .fcond__field, .fcond__field .dropdown { width: 100% !important; }
+  .fcond__actions { width: 100%; padding-top: 0; height: auto; }
+  .fcond__actions button { flex: 1; height: 40px; }
+  .wxbars__row > span:first-child { width: 110px; }
+  .wxbars__bar { flex: 1; width: auto; }
+}
+@media (max-width: 1279px) {
+  .fcond { order: 0; }
+  .fusion__mapwrap { order: 1; position: relative; inset: auto; height: 62vh; min-height: 440px; flex: none; }
+  .fside { order: 2; }
 }

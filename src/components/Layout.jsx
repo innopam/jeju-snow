@@ -91,16 +91,24 @@ export default function Layout() {
           <button className="topbar__menu" onClick={() => setDrawer(true)} aria-label="메뉴 열기">
             <span /><span /><span />
           </button>
-          <h1>{title}</h1>
+          <nav className="crumb" aria-label="현재 위치">
+            <span>제설·결빙 대응 시스템</span>
+            <img src={A.icCrumb} alt="" />
+            <h1>{title}</h1>
+          </nav>
           <div className="topbar__right">
+            <p className="topbar__user" title={`${session?.role} · 로그인 ${session?.loginAt ?? ''}`}>
+              <span className="topbar__avatar"><img src={A.icUser} alt="" /></span>
+              <span className="topbar__name">{session?.dept} {session?.name} 님</span>
+            </p>
             <button className="bell" onClick={() => setAlertFilter((f) => (f ? null : '전체'))} aria-label={`위험 이벤트 알림 ${unread}건`}>
               <img src={A.icBell} alt="" />
               {unread > 0 && <span className="bell__count">{unread > 99 ? 99 : unread}</span>}
             </button>
-            <p className="topbar__user" title={`${session?.role} · 로그인 ${session?.loginAt ?? ''}`}>
-              <span className="topbar__name">{session?.dept} {session?.name} 님</span>
-              <span className="role-tag">{session?.role}</span>
-            </p>
+            <button className="logout-pill" onClick={onLogout}>
+              로그아웃
+              <img src={A.icPillArrow} alt="" />
+            </button>
           </div>
           {/* 실시간 알림 바 — GNB 레이어 안에 두어 GNB 위로 겹쳐 보이고, 알림 패널보다는 아래 */}
           {pathname === '/' && <RealtimeBanner alerts={alerts} onSelect={goToAlert} />}

@@ -27,6 +27,7 @@ export default function Stats() {
   return (
     <div className="page-scroll">
       <div className="stats">
+        <h2 className="page-title">통계</h2>
         {/* 조회 조건 */}
         <section className="card filter">
           <div className="filter__row">
@@ -172,7 +173,7 @@ function DateRange({ from, to, onChange }) {
     <div className="daterange" ref={ref}>
       <button type="button" className="dropdown" style={{ width: 290, height: 40 }} onClick={() => { setF(from); setT(to); setErr(''); setOpen((o) => !o) }}>
         <span>{fmtRange(from, to)}</span>
-        <img src={A.icCalendar} alt="" />
+        <img src={A.icChevronDown} alt="" />
       </button>
       {open && (
         <div className="daterange__pop" role="dialog" aria-label="분석 기간 선택">
@@ -200,7 +201,7 @@ function DateRange({ from, to, onChange }) {
 // 위험요소 발생 추이 — 심각·경계·주의 라인 (가로 폭에 맞춰 늘어남)
 function TrendCard({ data, unit }) {
   const VW = 1000
-  const H = 200
+  const H = 174
   const { labels, series, shown } = data
   const maxVal = Math.max(...shown.flatMap((g) => series[g]), 1)
   const top = niceTop(maxVal, unit === '일' ? 20 : 100)

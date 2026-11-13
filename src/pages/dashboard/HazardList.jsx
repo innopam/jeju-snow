@@ -5,7 +5,7 @@ import { HAZARD_GRADE_STYLE, HAZARD_GRADES, HAZARD_LIST } from '../../data/dashb
 import { HAZARD_COLORS } from '../../data/geo.js'
 
 const GRADE_OPTIONS = ['등급 전체', ...HAZARD_GRADES]
-const TYPE_OPTIONS = ['위험요소 전체', '결빙', '적설', '블랙아이스']
+const TYPE_OPTIONS = ['위험요소 전체', '결빙', '적설']
 const JUR_OPTIONS = ['관할 전체', '제주시', '서귀포시']
 // 위험요소 글자색 (적설은 띠 색보다 진하게)
 const TYPE_TEXT = { ...HAZARD_COLORS, 적설: '#0284c7' }

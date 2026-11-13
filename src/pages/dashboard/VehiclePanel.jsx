@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
 import { A } from '../../assets.js'
 import { Dropdown } from '../../components/Controls.jsx'
 import { JURISDICTIONS, VEHICLES, VEHICLE_STATUS } from '../../data/dashboard.js'
+import VehicleHistory from './VehicleHistory.jsx'
 
 // UI-SIRS-001-04 대시보드 – 제설 차량 현황
 const TYPES = ['전체', '유니목', '임차', '덤프', '다목적']
@@ -18,6 +20,9 @@ export default function VehiclePanel({ selected, onSelect }) {
   const [type, setType] = useState('전체')
   const [status, setStatus] = useState(null)
   const [query, setQuery] = useState('')
+  const [history, setHistory] = useState(null) // 작업 이력(저장 영상)을 보는 차량 번호
+  const { setToast } = useOutletContext() ?? {}
+  useEffect(() => setHistory(null), [selected]) // 지도에서 다른 차량을 고르면 목록으로
 
   const inJur = useMemo(() => VEHICLES.map((v, i) => ({ ...v, i })).filter((v) => jur === '전체' || v.jur === jur), [jur])
   const list = useMemo(
@@ -32,6 +37,15 @@ export default function VehiclePanel({ selected, onSelect }) {
         .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]),
     [inJur, type, status, query],
   )
+
+  if (history != null)
+    return (
+      <VehicleHistory
+        vehicle={VEHICLES[history]}
+        onBack={() => setHistory(null)}
+        onOrder={(v) => setToast?.(`${v.name}에 작업 지시를 보냈습니다 (목업).`)}
+      />
+    )
 
   return (
     <div className="vp">
@@ -68,7 +82,7 @@ export default function VehiclePanel({ selected, onSelect }) {
           <span style={{ flex: 1 }}>차량 · 운행 정보</span>
           <span style={{ width: 52, textAlign: 'center' }}>상태</span>
           <span style={{ width: 50, textAlign: 'center' }}>배터리</span>
-          <span style={{ width: 28, textAlign: 'center' }}>영상</span>
+          <span className="vlist-head__hist">작업<br />이력</span>
         </div>
         <div className="vlist">
           {list.map((v) => {
@@ -90,18 +104,19 @@ export default function VehiclePanel({ selected, onSelect }) {
                   <i><i style={{ width: Math.max(1, (v.battery / 100) * 12), background: low ? '#d92338' : '#16a05d' }} /></i>
                   <small style={{ color: low ? '#d92338' : undefined }}>{v.battery}%</small>
                 </span>
-                <button
-                  className={`vrow__video${isSel ? ' on' : ''}`}
-                  disabled={v.status === 'done'}
-                  title={v.status === 'done' ? '운행 종료 차량은 영상을 볼 수 없습니다' : '실시간 영상 보기'}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onSelect(v.i)
-                  }}
-                  aria-label="영상 보기"
-                >
-                  <img src={isSel ? A.icVideoWhite : A.icVideo} alt="" />
-                </button>
+                {isSel && (
+                  <button
+                    className="vrow__hist"
+                    title="작업 이력 · 저장 영상 보기"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setHistory(v.i)
+                    }}
+                    aria-label={`${v.name} 작업 이력`}
+                  >
+                    <img src={A.icInfoWhite} alt="" />
+                  </button>
+                )}
               </div>
             )
           })}

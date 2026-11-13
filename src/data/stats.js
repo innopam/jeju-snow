@@ -6,7 +6,7 @@ export const DONG = {
   서귀포시: ['중문동', '서귀동', '대정읍', '안덕면', '남원읍', '표선면', '성산읍', '대륜동'],
 }
 export const dongOptions = (sido) => ['읍면동 전체', ...(sido === '전체' ? [] : DONG[sido])]
-export const HAZARD_TYPES = ['전체', '결빙', '블랙아이스', '적설']
+export const HAZARD_TYPES = ['전체', '결빙', '적설']
 export const GRADE_OPTIONS = ['전체 (주의 이상)', '심각', '경계', '주의']
 export const GRADES = ['심각', '경계', '주의']
 export const GRADE_COLORS = { 심각: '#f93c65', 경계: '#ff8a3d', 주의: '#fcbe2d' }

@@ -17,7 +17,7 @@ const INITIAL = [
   { id: 11, type: '긴급', title: '재결빙 위험 · 11:10 예상', desc: '번영로 · 대천 (B-4) · 노면 -0.9℃ · 제설제 잔류 24%', time: '08:30', seg: 'B-4', unread: false, refreeze: true },
   { id: 12, type: '긴급', title: '재결빙 위험 · 11:30 예상', desc: '남조로 · 수망 (N-3) · 노면 -0.6℃ · 제설제 잔류 26%', time: '08:20', seg: 'N-3', unread: false, refreeze: true },
   { id: 4, type: '상습', title: '상습 결빙 구간 재발', desc: '산록도로 · 안덕 (S-1) · 올겨울 4회째', time: '08:12', seg: 'S-1', unread: false },
-  { id: 5, type: '긴급', title: '블랙아이스 감지', desc: '1100도로 · 성판악 (K-12) · 노면 -3.8℃', time: '07:52', seg: 'K-12', unread: false },
+  { id: 5, type: '긴급', title: '노면 결빙 감지', desc: '1100도로 · 성판악 (K-12) · 노면 -3.8℃', time: '07:52', seg: 'K-12', unread: false },
   { id: 6, type: '미조치', title: '작업 누락 의심', desc: '번영로 · 대천 (B-4) · 위험 발생 후 3h', time: '07:30', seg: 'B-4', unread: false },
   { id: 7, type: '미조치', title: '제설제 살포 미흡', desc: '평화로 · 광령 (P-2) · 1회 살포 후 미재살포', time: '07:05', seg: 'P-2', unread: false },
   { id: 8, type: '상습', title: '상습 결빙 구간 재발', desc: '남조로 · 수망 (N-3) · 올겨울 3회째', time: '06:40', seg: 'N-3', unread: false },
@@ -26,11 +26,11 @@ const INITIAL = [
 // 실시간으로 들어올 신규 이벤트 (스마트빌리지 인프라 수신 → 알림 조건 충족, UC-EVT-001 기본 흐름 1)
 export const INCOMING = [
   { type: '긴급', title: '재결빙 위험 발생', desc: '번영로 · 대천 (B-4) · 노면 -1.8℃ 하강', seg: 'B-4' },
-  { type: '긴급', title: '블랙아이스 감지', desc: '1100도로 · 성판악 (K-12) · 마찰계수 0.28', seg: 'K-12' },
+  { type: '긴급', title: '노면 결빙 감지', desc: '1100도로 · 성판악 (K-12) · 마찰계수 0.28', seg: 'K-12' },
   { type: '미조치', title: '장기 미조치 3시간 경과', desc: '번영로 · 대천 (B-4) · 제설 미작업', seg: 'B-4' },
 ]
 
-export const alertStore = createStore('jeju-snow.alerts.v4', INITIAL)
+export const alertStore = createStore('jeju-snow.alerts.v5', INITIAL)
 
 export function pushIncoming(i) {
   const src = INCOMING[i % INCOMING.length]

@@ -15,7 +15,7 @@ import {
   CCTV_GEO, COUNT_COLORS, HAZARD_COLORS, HAZARD_WIDTH, HAZARD_ZONES, JEJU_CENTER, ROUTES, SURFACE_COLORS, TRAFFIC_WIDTH,
   ALL_LINKS, VEHICLES_GEO, WEATHER_GEO, admDongCenter, edgeMid, regionAtGeo, vehicleTrack,
 } from '../data/geo.js'
-import { RISK_COLOR, ROUTE_SEGMENTS, SEGMENTS, STATE_COLOR, findSegment, segAt, segName } from '../data/segments.js'
+import { RISK_COLOR, ROUTE_SEGMENTS, SEGMENTS, STATE_COLOR, findSegment, segAt, segName, segWeather } from '../data/segments.js'
 import { HAS_VWORLD, createBaseLayers, createCadastralLayer } from '../map/basemap.js'
 import { fromLonLat, toLonLat, useOlMap } from '../map/useOlMap.js'
 import DashboardPanel from './dashboard/DashboardPanel.jsx'
@@ -26,7 +26,7 @@ import './dashboard.css'
 
 // UI-SIRS-001-01 ~ 04 통합 관제 대시보드 — OpenLayers + K-Geo플랫폼(브이월드) 배경지도
 const BASE_LAYERS = ['기상정보', '연속지적도', '적설 감시 CCTV', '주요 교통량 축', '제설 우선노선']
-const SECTION_LAYERS = ['상습 결빙 구간', '재결빙 주의 구간', '블랙아이스·적설·결빙 위험구간']
+const SECTION_LAYERS = ['상습 결빙 구간', '재결빙 주의 구간', '적설·결빙 위험구간']
 const MODES = [
   { key: 'status', label: '제설 작업 상태' },
   { key: 'count', label: '제설 작업 횟수' },
@@ -37,14 +37,14 @@ const LEGENDS = {
   count: { title: '제설 횟수', items: [0, 1, 2, 3, 4, 5].map((n) => [COUNT_COLORS[Math.min(n, 5)], n === 5 ? '5회 이상' : n ? `${n}회` : '미작업']) },
   surface: { title: '도로상태', items: Object.entries(SURFACE_COLORS).map(([k, c]) => [c, k]) },
 }
-const HAZARD_LAYER = '블랙아이스·적설·결빙 위험구간'
+const HAZARD_LAYER = '적설·결빙 위험구간'
 const TRAFFIC_LAYER = '주요 교통량 축'
 const PRIORITY_LAYER = '제설 우선노선'
 // 주요 교통량 축은 1등급 축만 표시 (여러 등급을 겹치면 지도가 복잡해짐)
 const MAIN_AXES = ROUTES.filter((r) => r.traffic?.grade === 1)
 const HAZARD_LEGEND = Object.entries(HAZARD_COLORS)
 const STATE_LINE = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
-const PANEL_DESKTOP = 380
+const PANEL_DESKTOP = 426
 const mq = (q) => typeof window !== 'undefined' && window.matchMedia(q).matches
 const segGeo = segAt
 
@@ -55,7 +55,6 @@ export default function Dashboard() {
   const isMobile = useMedia(BP.mobile)
   const PANEL_W = isMobile ? 0 : PANEL_DESKTOP // 모바일은 하단 시트라 지도 가로를 가리지 않는다
   const [layerOpen, setLayerOpen] = useState(() => !mq(BP.mobile))
-  const [layerQuery, setLayerQuery] = useState('')
   const [mode, setMode] = useState('status')
   const [basemap, setBasemap] = useState('normal')
   const [tab, setTab] = useState('dashboard')
@@ -278,8 +277,6 @@ export default function Dashboard() {
   const island = true // 모든 제설 작업 레이어가 전체 노선 지도 위에서 동작
   const showEdgeLabels = mode !== 'status' && zoomLevelOf(mapRef) >= 11 // 확대 시 구간별 횟수·노면 상태 라벨
   const showLayer = (l) => layers.has(l)
-  const filteredBase = BASE_LAYERS.filter((l) => l.includes(layerQuery.trim()))
-  const filteredSection = SECTION_LAYERS.filter((l) => l.includes(layerQuery.trim()))
   const legend = LEGENDS[mode]
   const seg = findSegment(segCode)
   const vehiclesShown = VEHICLES_GEO
@@ -394,40 +391,29 @@ export default function Dashboard() {
       {/* ── 지도 위 고정 UI ───────────────────────── */}
       <section className={`layer-panel${layerOpen ? '' : ' closed'}`}>
         <button className="layer-panel__title" onClick={() => setLayerOpen((o) => !o)} aria-expanded={layerOpen}>
-          <img src={A.icLayerMap} alt="" />
           <span>레이어 설정</span>
           <img src={A.icUp18} alt="" className="chev" />
         </button>
         {layerOpen && (
           <div className="layer-panel__body">
-            <label className="search">
-              <img src={A.icSearch} alt="" />
-              <input placeholder="레이어 검색..." value={layerQuery} onChange={(e) => setLayerQuery(e.target.value)} />
-            </label>
-            {filteredBase.length > 0 && (
-              <div className="layer-group">
-                <p>기본 레이어</p>
-                {filteredBase.map((l) => (
-                  <button key={l} onClick={() => toggleLayer(l)} aria-pressed={layers.has(l)}>
-                    <Checkbox checked={layers.has(l)} />
-                    {l}
-                    {l === '연속지적도' && <small className="layer-hint">{HAS_VWORLD ? '확대 시 표출' : '인증키 필요'}</small>}
-                  </button>
-                ))}
-              </div>
-            )}
-            {filteredSection.length > 0 && (
-              <div className="layer-group">
-                <p>적설·결빙 예측</p>
-                {filteredSection.map((l) => (
-                  <button key={l} onClick={() => toggleLayer(l)} aria-pressed={layers.has(l)}>
-                    <Checkbox checked={layers.has(l)} />
-                    {l}
-                  </button>
-                ))}
-              </div>
-            )}
-            {filteredBase.length + filteredSection.length === 0 && <p className="layer-empty">‘{layerQuery}’ 레이어가 없습니다.</p>}
+            <div className="layer-group">
+              <p>기본 레이어</p>
+              {BASE_LAYERS.map((l) => (
+                <button key={l} onClick={() => toggleLayer(l)} aria-pressed={layers.has(l)} title={l === '연속지적도' ? (HAS_VWORLD ? '확대 시 표출' : '브이월드 인증키 필요') : undefined}>
+                  <Checkbox checked={layers.has(l)} />
+                  {l}
+                </button>
+              ))}
+            </div>
+            <div className="layer-group">
+              <p>적설·결빙 예측</p>
+              {SECTION_LAYERS.map((l) => (
+                <button key={l} onClick={() => toggleLayer(l)} aria-pressed={layers.has(l)}>
+                  <Checkbox checked={layers.has(l)} />
+                  {l}
+                </button>
+              ))}
+            </div>
             <div className="layer-group">
               <p>제설 작업·노면</p>
               {MODES.map((m) => (
@@ -481,13 +467,21 @@ export default function Dashboard() {
             <dt>구간</dt>
             <dd><b>{segName(seg)}</b></dd>
             <dt>제설 상태</dt>
-            <dd><b style={{ color: STATE_COLOR[seg.state] }}>{seg.state}</b></dd>
+            <dd><b style={{ color: STATE_COLOR[seg.state] }}>{seg.state === '진행중' ? '진행' : seg.state}</b></dd>
             <dt>재결빙 위험</dt>
             <dd><b style={{ color: RISK_COLOR[seg.risk] }}>{seg.risk}</b></dd>
             <dt>위험요소</dt>
             <dd><b className="seg-pop__hazard">{seg.hazard}</b></dd>
+            {(() => { const w = segWeather(seg); return (
+              <>
+                <dt>기상현황</dt>
+                <dd className="seg-pop__wx">{w.temp.toFixed(1)}℃ · {w.sky} · 습도 {w.hum}%</dd>
+                <dt>강수·적설량</dt>
+                <dd className="seg-pop__wx">강수량 {w.rain}mm<br />신적설 {w.snow}cm</dd>
+              </>
+            ) })()}
           </dl>
-          <button className="seg-pop__close" onClick={() => setSegCode(null)} aria-label="닫기">×</button>
+          <button className="seg-pop__close" onClick={() => setSegCode(null)} aria-label="닫기"><img src={A.icPopClose} alt="" /></button>
           {/* 재결빙 위험 구간이면 판정 근거(노면온도 · 제설제 잔류)를 함께 표시 */}
           {seg.refreeze && (
             <div className="seg-pop__refreeze">
@@ -608,7 +602,7 @@ function badgeSpots(pts, gap) {
   return out.length ? out : [pts[Math.floor(pts.length / 2)]]
 }
 
-// 블랙아이스·적설·결빙 위험구간 — 색 = 위험 유형, 굵기 = 위험 등급, 60% 투명도로 도로 라인 위에 겹침
+// 적설·결빙 위험구간 — 색 = 위험 유형, 굵기 = 위험 등급, 60% 투명도로 도로 라인 위에 겹침
 function hazardStyle(f) {
   const z = f.get('hazard')
   return new Style({ stroke: new Stroke({ color: hexA(HAZARD_COLORS[z.type], 0.6), width: HAZARD_WIDTH[z.grade], lineCap: 'round', lineJoin: 'round' }) })

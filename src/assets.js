@@ -61,6 +61,20 @@ import dotGradeSevere from './assets/fig/69c2b.svg'
 import dotGradeAlert from './assets/fig/71861.svg'
 import dotGradeCaution from './assets/fig/f37a9.svg'
 import fusionHalo from './assets/fig/1017f.svg'
+import icCrumb from './assets/fig/ce560.svg'
+import icUser from './assets/fig/518cf.svg'
+import icPillArrow from './assets/fig/4d2e8.svg'
+import icPopClose from './assets/fig/f1e70.svg'
+import icPlayBrand from './assets/fig/d2a4b.svg'
+import icPlayWhite from './assets/fig/cda6b.svg'
+import icHandle from './assets/fig/72477.svg'
+import icExpand from './assets/fig/03c90.svg'
+import icClose20 from './assets/fig/a1ab1.svg'
+import icInfoWhite from './assets/fig/3c026.svg'
+import icArrowLeft from './assets/fig/fdc23.svg'
+import icChevronDown18 from './assets/fig/0252b.svg'
+import icChevronUp18 from './assets/fig/72f5c.svg'
+import icExpandWhite from './assets/fig/322d6.svg'
 import veh1 from './assets/fig/927a3.svg'
 import veh2 from './assets/fig/c41a3.svg'
 import veh3 from './assets/fig/80257.svg'
@@ -84,6 +98,8 @@ export const A = {
   icCalendar, thumbMap, thumbSatellite, wxCloud, wxSnow, wxSunCloud, wxRainSnow, 
   
   fusionHalo, icSearch14, icChevronDown12, icChevronDown14, icChevronRight14, dotGradeSevere, dotGradeAlert, dotGradeCaution,
+  icCrumb, icUser, icPillArrow, icPopClose,
+  icPlayBrand, icPlayWhite, icHandle, icExpand, icClose20, icInfoWhite, icArrowLeft, icChevronDown18, icChevronUp18, icExpandWhite,
 }
 
 export const VEHICLE_ICONS = { 1: veh1, 2: veh2, 3: veh3, 4: veh4, 5: veh5, 6: veh6, 7: veh7, 8: veh8, 9: veh9, 10: veh10, 11: veh11, 12: veh12 }

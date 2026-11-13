@@ -1,5 +1,5 @@
 /* UI-002 통계 — 화면 폭 전체를 좌우 여백 24px로 채움. 1920 시안 기준 비율(추이 2 : 유형 1, 조치 1.25 : 표 1 : 표 1)을 유지 */
-.stats { margin: 17px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+.stats { margin: 24px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
 .stats__body { display: flex; flex-direction: column; gap: 14px; }
 .stats__sec { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .stats__title { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.16px; line-height: 1.4; color: var(--text-strong); }
@@ -13,11 +13,14 @@
 .card__sub { margin: 2px 0 0; font-size: 12px; color: #999; letter-spacing: -0.12px; }
 
 /* 조회 조건 */
-.filter { padding: 12px 16px 10px; display: flex; align-items: flex-end; gap: 16px; }
+.filter { padding: 13px 17px 11px; display: flex; align-items: flex-end; gap: 16px; }
 .filter__row { flex: 1; display: flex; flex-wrap: wrap; gap: 12px 16px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field small { font-size: 12px; color: #999; letter-spacing: -0.12px; }
+.field small { font-size: 12px; font-weight: 500; line-height: 1; color: #999; letter-spacing: -0.12px; }
 .pills { display: flex; gap: 6px; align-items: center; height: 40px; }
+/* Tab/Pill (462:1171) — h36 캡슐 */
+.pills .pill { width: auto; height: 36px; padding: 0 20px; color: #222; }
+.pills .pill.on { background: #111038; border-color: #111038; color: #fff; }
 .filter__actions { display: flex; gap: 8px; padding-bottom: 4px; }
 .filter__actions button { width: 84px; }
 .filter__actions button:disabled { opacity: .7; }
@@ -41,8 +44,8 @@
 /* 차트 카드 공통 */
 .chart-card { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .chart-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.stats__row--occ .chart-card { height: 300px; }
-.stats__row--act .chart-card { height: 314px; }
+.stats__row--occ .chart-card { height: 274px; }
+.stats__row--act .chart-card { height: 283px; }
 .legend-inline { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .legend-inline span { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: #555; white-space: nowrap; }
 .legend-inline i { width: 14px; height: 3px; border-radius: 2px; }
@@ -50,10 +53,10 @@
 
 /* 위험요소 발생 추이 */
 .trend__tag { font-size: 11px; font-weight: 500; color: var(--bg-brand); background: #eeedfe; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
-.trend__chart { display: flex; gap: 6px; height: 226px; padding-top: 4px; }
+.trend__chart { display: flex; gap: 6px; height: 200px; padding-top: 4px; }
 .trend__y { position: relative; width: 24px; flex: none; }
 .trend__y small { position: absolute; right: 0; transform: translateY(-50%); font-size: 10px; color: #999; }
-.trend__plot { position: relative; flex: 1; min-width: 0; height: 200px; cursor: crosshair; }
+.trend__plot { position: relative; flex: 1; min-width: 0; height: 174px; cursor: crosshair; }
 .trend__grid { position: absolute; left: 0; right: 0; height: 1px; background: #f2f4f7; }
 .trend__grid.base { background: #d0d5dd; }
 .trend__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
