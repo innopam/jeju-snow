@@ -13,13 +13,13 @@
   position: absolute; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 8px 10px; background: #fff;
   border: 1px solid #eee; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.12); text-align: left; z-index: 3; transition: border-color .15s;
 }
-.fcard.on { border: 1.5px solid #37348f; z-index: 4; }
+.fcard.on { border: 1.5px solid #312f82; z-index: 4; }
 .fcard:hover { border-color: #9b98dc; }
 .fcard hr { width: 100%; height: 1px; border: 0; background: #eee; margin: 0; }
 .fcard__head { display: flex; align-items: center; gap: 5px; width: 100%; }
 .fcard__head > i { width: 16px; height: 16px; border-radius: 8px; color: #fff; font-size: 9px; font-weight: 700; font-style: normal; display: grid; place-items: center; }
 .fcard__head > b { font-size: 10.5px; color: #222; white-space: nowrap; }
-.fcard__head .badge { height: 15px; padding: 0 4px; }
+.fcard__head .pbadge { min-height: 18px; padding: 2px 6px; }
 .fcard__head strong { font-size: 9px; white-space: nowrap; }
 .fcard__line { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
 .fcard__line small { background: #f2f4f7; border-radius: 3px; padding: 1px 4px; font-size: 8px; font-weight: 500; color: #78787d; }
@@ -35,7 +35,7 @@
 .rank-row__info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
 .rank-row__info p { display: flex; align-items: center; gap: 6px; }
 .rank-row__info b { font-size: 11px; color: #222; }
-.rank-row__info .badge { height: 15px; padding: 0 6px; }
+
 .rank-row__info small { font-size: 9px; color: #999; }
 .rank-row__bar { position: relative; display: flex; width: 180px; height: 6px; border-radius: 3px; background: #f1f1f1; }
 .rank-row__bar i:first-child { border-radius: 3px 0 0 3px; }
@@ -48,11 +48,11 @@
 .weak__rows { flex: none; display: flex; flex-direction: column; height: 254px; }
 .weak-row { flex: 1; display: flex; align-items: center; gap: 15px; padding: 2px 8px; border-radius: 8px; text-align: left; background: #f4f5f7; border-bottom: 1px solid #fff; }
 .weak-row:last-child { border-bottom: 0; }
-.weak-row.on { background: #e8e7fb; box-shadow: inset 0 0 0 1.5px #37348f; }
+.weak-row.on { background: #e8e7fb; box-shadow: inset 0 0 0 1.5px #312f82; }
 .weak-row:hover:not(.on) { background: #eceef2; }
 .weak-row > small { font-size: 11px; color: #222; }
 .weak-row__main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
-.weak-row__main .badge { height: 15px; width: 47px; padding: 0 4px; flex: none; }
+.weak-row__main .pbadge { flex: none; }
 .weak-row__main b { font-size: 12px; color: #222; white-space: nowrap; }
 .weak-row strong { font-size: 17px; margin-left: auto; white-space: nowrap; }
 @keyframes halo { 50% { opacity: .55; } }
@@ -66,7 +66,7 @@
 .fusion__overlays > button { pointer-events: auto; }
 .fusion__links { position: absolute; inset: 0; }
 .fusion__links line { stroke: #8e9098; stroke-width: 1; stroke-dasharray: 3 3; }
-.fusion__links line.on { stroke: #37348f; stroke-width: 1.5; }
+.fusion__links line.on { stroke: #312f82; stroke-width: 1.5; }
 .fusion__veh { position: absolute; width: 44px; height: 28px; max-width: none; }
 .fusion__halo { position: absolute; width: 36px; height: 36px; animation: halo 1.6s ease-in-out infinite; }
 .fusion__note { left: 18px; bottom: auto; top: 622px; }
@@ -109,12 +109,12 @@
 }
 .fcond__field { display: flex; flex-direction: column; gap: 6px; flex: none; }
 .fcond__field small { font-size: 12px; font-weight: 500; line-height: 1; color: #999; letter-spacing: -0.12px; }
-.fcond__actions { display: flex; gap: 8px; height: 58px; padding-top: 18px; align-items: center; flex: none; }
-.fcond__actions button { width: 84px; }
+.fcond__actions { display: flex; gap: 8px; height: 60px; padding-top: 18px; align-items: center; flex: none; }
+.fcond__actions .btn { min-width: 100px; }
 
 /* ── 우측 분석 패널 (890:31141 · 898:31786) — 380px 패널을 1.12배 확대 ─── */
 .fside {
-  position: absolute; right: 0; top: 0; bottom: 0; width: 380px; zoom: 1.12; z-index: 7; background: #fff; border-left: 1px solid #e4e7ec;
+  position: absolute; right: 0; top: 0; bottom: 0; width: 426px; z-index: 7; background: #fff; border-left: 1px solid #e4e7ec;
   box-shadow: -4px 0 12px rgba(0, 0, 0, .08); padding: 18px 20px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; scrollbar-width: thin;
 }
 .fside > * { flex: none; }
@@ -145,7 +145,7 @@
 .matrix__row--th > span:first-child { flex: none; text-align: left; font-size: 10px; color: #777; }
 .matrix__row button { flex: 1; min-width: 0; padding: 7px 0; border-radius: 4px; font-size: 11px; font-weight: 700; line-height: 1.4; }
 .matrix__row button:hover { filter: brightness(.95); }
-.matrix__row button.on { box-shadow: inset 0 0 0 2px #37348f; }
+.matrix__row button.on { box-shadow: inset 0 0 0 2px #312f82; }
 
 .sbars { display: flex; align-items: flex-end; gap: 6px; }
 .sbars__item { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -155,13 +155,11 @@
 
 .fsum { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid #d6e2ff; border-radius: 8px; background: #f5f8ff; }
 .fsum__row { display: flex; align-items: flex-start; gap: 8px; }
-.fsum__row em { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; line-height: 1.4; font-style: normal; flex: none; }
+.fsum__row em { flex: none; }
 .fsum__row p { margin: 0; display: flex; flex-direction: column; gap: 1px; font-size: 11px; line-height: 1.4; }
 .fsum__row b { color: #111; }
 .fsum__row span { color: #777; }
 
-/* 탭 2 — 시안은 확대하지 않은 원본 치수라 패널 확대(1.12배)를 되돌린다 */
-.fside .rank__list, .fside .weak__rows, .fside .fside__head--sm { zoom: calc(1 / 1.12); }
 .fside .fside__head--sm { height: 32px; }
 .fside .fside__head--sm .fside__title { font-size: 14px; color: #222; }
 .fside .fside__sort { font-size: 11px; }
@@ -169,14 +167,13 @@
 /* 태블릿·모바일: 지도 → 분석 조건 → 분석 패널 순서로 쌓음 */
 @media (max-width: 1279px) {
   .fcond { position: relative; left: auto; top: auto; right: auto; flex-wrap: wrap; order: -1; }
-  .fside { position: relative; right: auto; top: auto; bottom: auto; width: auto; zoom: 1; overflow: visible; border: 1px solid var(--border-divider); border-radius: 8px; box-shadow: none; }
-  .fside .rank__list, .fside .weak__rows, .fside .fside__head--sm { zoom: 1; }
+  .fside { position: relative; right: auto; top: auto; bottom: auto; width: auto; overflow: visible; border: 1px solid var(--border-divider); border-radius: 8px; box-shadow: none; }
   .fside .rank__list { width: 100%; }
 }
 @media (max-width: 767px) {
   .fcond__field, .fcond__field .dropdown { width: 100% !important; }
   .fcond__actions { width: 100%; padding-top: 0; height: auto; }
-  .fcond__actions button { flex: 1; height: 40px; }
+  .fcond__actions .btn { flex: 1; }
   .wxbars__row > span:first-child { width: 110px; }
   .wxbars__bar { flex: 1; width: auto; }
 }

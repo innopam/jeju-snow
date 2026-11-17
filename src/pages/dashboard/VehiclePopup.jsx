@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { A } from '../../assets.js'
+import Icon from '../../components/Icon.jsx'
 import { VEHICLE_STATUS } from '../../data/dashboard.js'
 
 const fmt = (d) =>
@@ -51,15 +52,12 @@ export default function VehiclePopup({ vehicle, onClose }) {
         onDoubleClick={(e) => !e.target.closest('button') && setOffset({ x: 0, y: 0 })}
         title="끌어서 이동 · 더블클릭하면 원래 위치"
       >
-        <span className="vrow__type">{vehicle.type}</span>
+        <span className="pbadge tone-etc vrow__type">{vehicle.type}</span>
         <b>{vehicle.name}</b>
-        <span className="vrow__st" style={{ background: st.bg, color: st.fg }}>
-          <img src={st.dot} alt="" />
-          {st.label}
-        </span>
+        <span className={`grade grade--${st.tone} vrow__st`}><i />{st.label}</span>
         <span style={{ flex: 1 }} />
         <button onClick={onClose} aria-label="닫기">
-          <img src={A.icClose} alt="" />
+          <Icon name="close" />
         </button>
       </div>
       <div className={`vpop__video${playing ? ' playing' : ''}`}>

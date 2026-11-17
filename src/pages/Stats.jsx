@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BP, useMedia } from '../useMedia.js'
 import { A } from '../assets.js'
-import { Dropdown } from '../components/Controls.jsx'
-import { DEFAULT_FILTER, GRADES, GRADE_COLORS, GRADE_OPTIONS, HAZARD_TYPES, SIDO, dongOptions, fmtRange, routeTable, statsData } from '../data/stats.js'
+import { CalendarField, Dropdown, fmtDate } from '../components/Controls.jsx'
+import Icon from '../components/Icon.jsx'
+import { DEFAULT_FILTER, GRADES, GRADE_COLORS, GRADE_OPTIONS, HAZARD_TYPES, SIDO, dongOptions, routeTable, statsData } from '../data/stats.js'
 import './stats.css'
 
 // UI-002 통계 — STA-001 핵심 지표 / STA-002 위험요소 발생 통계 / STA-008 조치·제설 실적
@@ -35,14 +36,14 @@ export default function Stats() {
               <DateRange from={draft.from} to={draft.to} onChange={(from, to) => set({ from, to })} />
             </Field>
             <Field label="집계 단위"><Pills value={draft.unit} onChange={(unit) => set({ unit })} /></Field>
-            <Field label="행정시"><Dropdown value={draft.sido} options={SIDO} onChange={(sido) => set({ sido, dong: '읍면동 전체' })} width={150} height={40} /></Field>
-            <Field label="읍면동"><Dropdown value={draft.dong} options={dongOptions(draft.sido)} onChange={(dong) => set({ dong })} width={150} height={40} /></Field>
-            <Field label="위험 유형"><Dropdown value={draft.hazard} options={HAZARD_TYPES} onChange={(hazard) => set({ hazard })} width={150} height={40} /></Field>
-            <Field label="위험 등급"><Dropdown value={draft.grade} options={GRADE_OPTIONS} onChange={(grade) => set({ grade })} width={150} height={40} /></Field>
+            <Field label="행정시"><Dropdown value={draft.sido} options={SIDO} onChange={(sido) => set({ sido, dong: '읍면동 전체' })} width={150} /></Field>
+            <Field label="읍면동"><Dropdown value={draft.dong} options={dongOptions(draft.sido)} onChange={(dong) => set({ dong })} width={150} /></Field>
+            <Field label="위험 유형"><Dropdown value={draft.hazard} options={HAZARD_TYPES} onChange={(hazard) => set({ hazard })} width={150} /></Field>
+            <Field label="위험 등급"><Dropdown value={draft.grade} options={GRADE_OPTIONS} onChange={(grade) => set({ grade })} width={150} /></Field>
           </div>
           <div className="filter__actions">
-            <button className="btn-gray" disabled={loading} onClick={() => { setDraft(DEFAULT_FILTER); run(DEFAULT_FILTER) }}>초기화</button>
-            <button className="btn-primary" disabled={loading} onClick={() => run(draft)}>{loading ? '조회 중' : '조회'}</button>
+            <button className="btn btn--gray" disabled={loading} onClick={() => { setDraft(DEFAULT_FILTER); run(DEFAULT_FILTER) }}>초기화</button>
+            <button className="btn btn--primary" disabled={loading} onClick={() => run(draft)}>{loading ? '조회 중' : '조회'}</button>
           </div>
         </section>
 
@@ -134,7 +135,7 @@ function Field({ label, children }) {
 
 function Pills({ value, onChange }) {
   return (
-    <div className="pills" role="radiogroup">
+    <div className="pill-tabs pills" role="radiogroup">
       {UNITS.map((u) => (
         <button key={u} role="radio" aria-checked={value === u} className={`pill${value === u ? ' on' : ''}`} onClick={() => onChange(u)}>{u}</button>
       ))}
@@ -171,26 +172,26 @@ function DateRange({ from, to, onChange }) {
   }
   return (
     <div className="daterange" ref={ref}>
-      <button type="button" className="dropdown" style={{ width: 290, height: 40 }} onClick={() => { setF(from); setT(to); setErr(''); setOpen((o) => !o) }}>
-        <span>{fmtRange(from, to)}</span>
-        <img src={A.icChevronDown} alt="" />
+      <button type="button" className="calendar" style={{ width: 290 }} onClick={() => { setF(from); setT(to); setErr(''); setOpen((o) => !o) }}>
+        <span>{fmtDate(from)} ~ {fmtDate(to)}</span>
+        <Icon name="calendar" />
       </button>
       {open && (
         <div className="daterange__pop" role="dialog" aria-label="분석 기간 선택">
           <div className="daterange__inputs">
-            <input type="date" value={f} max={t} onChange={(e) => { setF(e.target.value); setErr('') }} aria-label="시작일" />
+            <CalendarField value={f} max={t} onChange={(v) => { setF(v); setErr('') }} label="시작일" width={150} />
             <span>~</span>
-            <input type="date" value={t} min={f} onChange={(e) => { setT(e.target.value); setErr('') }} aria-label="종료일" />
+            <CalendarField value={t} min={f} onChange={(v) => { setT(v); setErr('') }} label="종료일" width={150} />
           </div>
-          <div className="daterange__presets">
+          <div className="label-tabs label-tabs--sm daterange__presets">
             {[7, 30, 90].map((n) => (
               <button key={n} type="button" onClick={() => preset(n)}>최근 {n}일</button>
             ))}
           </div>
           {err && <p className="daterange__err">{err}</p>}
           <div className="daterange__actions">
-            <button type="button" onClick={() => setOpen(false)}>취소</button>
-            <button type="button" className="btn-primary" onClick={apply}>적용</button>
+            <button type="button" className="btn btn--sm btn--outline" onClick={() => setOpen(false)}>취소</button>
+            <button type="button" className="btn btn--sm btn--primary" onClick={apply}>적용</button>
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { Dropdown } from '../components/Controls.jsx'
+import { Dropdown, fmtDate } from '../components/Controls.jsx'
+import Icon from '../components/Icon.jsx'
 import Feature from 'ol/Feature.js'
 import LineString from 'ol/geom/LineString.js'
 import VectorLayer from 'ol/layer/Vector.js'
@@ -16,7 +17,8 @@ import './fusion.css'
 
 // UI-SIRS-003 기상·제설 융합 분석 — 교차 분석 지도는 OpenLayers + K-Geo플랫폼(브이월드) 배경지도
 // card.dx/dy: 구간 마커 기준 상세 카드 위치(px)
-const ISSUE_BADGE = { '작업 누락': '#ffd2d5', '제설 취약': '#fff0bd' }
+// 배지 색 — component library Palette badge 색조
+const ISSUE_BADGE = { '작업 누락': 'tone-red', '제설 취약': 'tone-yellow' }
 const ROADS = [
   {
     id: 1, name: '1100도로 · 성판악', issue: '작업 누락', pending: '미조치 6h', hot: true,
@@ -74,7 +76,7 @@ const FILTERS = [
 ]
 
 // 판정: 총 대응시간 기준 우수(≤45분) · 양호(≤60분, 목표) · 주의(≤75분) · 미흡(>75분)
-const GRADE = { 우수: ['#c7f5ce', '#00b69b'], 양호: ['#bfdbfe', '#4880ff'], 주의: ['#fff0bd', '#bb4d00'], 미흡: ['#ffd2d5', '#d92338'] }
+const GRADE = { 우수: ['tone-green', '#168d4e'], 양호: ['tone-blue', '#2878ee'], 주의: ['tone-yellow', '#c65d00'], 미흡: ['tone-red', '#c92031'] }
 const gradeOf = (min) => (min <= 45 ? '우수' : min <= 60 ? '양호' : min <= 75 ? '주의' : '미흡')
 const RESPONSE = [
   ['1100도로', 9, 25], ['평화로', 12, 29], ['5·16도로', 15, 37], ['번영로', 14, 41], ['비자림로', 22, 41], ['일주동로', 26, 44], ['남조로', 31, 52],
@@ -193,7 +195,7 @@ export default function Fusion() {
           <span className="fcard__head">
             <i style={{ background: r.hot ? '#f93c65' : '#fcbe2d' }}>{r.id}</i>
             <b>{r.name}</b>
-            <em className="badge" style={{ background: ISSUE_BADGE[r.issue] }}>{r.issue}</em>
+            <em className={`pbadge ${ISSUE_BADGE[r.issue]}`}>{r.issue}</em>
             <span style={{ flex: 1 }} />
             <strong style={{ color: r.hot ? '#f93c65' : '#d98c00' }}>{r.pending}</strong>
           </span>
@@ -211,21 +213,21 @@ export default function Fusion() {
       <section className="fcond">
         <div className="fcond__field">
           <small>분석 기간</small>
-          <button className="dropdown" style={{ width: 290, height: 40 }} onClick={() => setToast?.('분석 기간 선택 (목업) — 2025.12.01 ~ 2026.02.28 동절기')}>
-            <span>2025.12.01 ~ 2026.02.28</span>
-            <img src={A.icChevronDown} alt="" />
+          <button className="calendar" style={{ width: 290 }} onClick={() => setToast?.('분석 기간 선택 (목업) — 2025.12.01 ~ 2026.02.28 동절기')}>
+            <span>{fmtDate('2025-12-01')} ~ {fmtDate('2026-02-28')}</span>
+            <Icon name="calendar" />
           </button>
         </div>
         {FILTERS.map(([label, options], i) => (
           <div key={label} className="fcond__field">
             <small>{label}</small>
-            <Dropdown value={filters[i]} options={options} onChange={(v) => setFilters((f) => f.map((x, k) => (k === i ? v : x)))} width={150} height={40} />
+            <Dropdown value={filters[i]} options={options} onChange={(v) => setFilters((f) => f.map((x, k) => (k === i ? v : x)))} width={150} />
           </div>
         ))}
         <span style={{ flex: 1 }} />
         <div className="fcond__actions">
-          <button className="btn-gray" onClick={() => { setFilters(FILTERS.map(([, o]) => o[0])); setCell(null) }}>초기화</button>
-          <button className="btn-primary" onClick={() => setToast?.('조회 조건을 적용했습니다 (목업 데이터).')}>조회</button>
+          <button className="btn btn--gray" onClick={() => { setFilters(FILTERS.map(([, o]) => o[0])); setCell(null) }}>초기화</button>
+          <button className="btn btn--primary" onClick={() => setToast?.('조회 조건을 적용했습니다 (목업 데이터).')}>조회</button>
         </div>
       </section>
 
@@ -324,9 +326,9 @@ export default function Fusion() {
               <p className="fside__title">분석 요약 · 사전 대응 기준</p>
             </div>
             <div className="fsum">
-              {SUMMARY.map(([g, fg, bg, title, act]) => (
+              {SUMMARY.map(([g, , , title, act]) => (
                 <div key={g} className="fsum__row">
-                  <em style={{ color: fg, background: bg }}>{g}</em>
+                  <em className={`grade grade--${{ 심각: 'danger', 경계: 'warning', 주의: 'mild' }[g]}`}>{g}</em>
                   <p><b>{title}</b><span>→ {act}</span></p>
                 </div>
               ))}
@@ -345,11 +347,11 @@ export default function Fusion() {
                   <div key={name} className={`rank-row${i === 0 ? ' top' : ''}`} title={`${name} · 총 ${go + spray}분 (${grade}) · 목표 60분`}>
                     <small>{i + 1}</small>
                     <div className="rank-row__info">
-                      <p><b>{name}</b><em className="badge" style={{ background: GRADE[grade][0] }}>{grade}</em></p>
+                      <p><b>{name}</b><em className={`pbadge ${GRADE[grade][0]}`}>{grade}</em></p>
                       <small>출동 {go}분 + 살포 {spray}분</small>
                       <span className="rank-row__bar">
                         <i style={{ width: go * PX_PER_MIN, background: '#9b98dc' }} />
-                        <i style={{ width: spray * PX_PER_MIN, background: '#37348f' }} />
+                        <i style={{ width: spray * PX_PER_MIN, background: '#312f82' }} />
                         <i className="goal" />
                       </span>
                     </div>
@@ -369,7 +371,7 @@ export default function Fusion() {
                 <button key={r.id} className={`weak-row${sel === r.id ? ' on' : ''}`} onClick={() => setSel((cur) => (cur === r.id ? null : r.id))} aria-pressed={sel === r.id}>
                   <small>{r.id}</small>
                   <span className="weak-row__main">
-                    <em className="badge" style={{ background: ISSUE_BADGE[r.issue] }}>{r.issue}</em>
+                    <em className={`pbadge ${ISSUE_BADGE[r.issue]}`}>{r.issue}</em>
                     <b>{r.name}</b>
                   </span>
                   <strong style={{ color: r.hot ? '#f93c65' : '#fcbe2d' }}>{r.pending}</strong>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { A } from '../../assets.js'
+import Icon from '../../components/Icon.jsx'
 
 // UI-001-04-01~03 차량별 영상 조회 — 작업 이력(저장 영상) 목록 · 펼쳐 재생 · 크게 보기
 const DAY = ['일', '월', '화', '수', '목', '금', '토']
@@ -47,7 +48,7 @@ export default function VehicleHistory({ vehicle, onBack, onOrder }) {
           <img src={A.icArrowLeft} alt="" />
         </button>
         <b>{vehicle.name}</b>
-        <span className="vh__type">{vehicle.type}</span>
+        <span className="pbadge tone-etc">{vehicle.type}</span>
         <span style={{ flex: 1 }} />
         <small>저장 영상 {list.length}건</small>
       </div>
@@ -55,7 +56,7 @@ export default function VehicleHistory({ vehicle, onBack, onOrder }) {
         <div className="vh__now">
           <b>진행 중인 작업이 없습니다</b>
           <small>{vehicle.info.split(' · ')[0]} · {vehicle.status === 'standby' ? `${vehicle.info.split(' · ')[1] ?? ''}째 대기` : '운행 종료'} · 기사 김제설</small>
-          <button onClick={() => onOrder(vehicle)}>작업 지시</button>
+          <button className="btn btn--primary" onClick={() => onOrder(vehicle)}>작업 지시</button>
         </div>
       )}
       <div className="vh__th">
@@ -80,8 +81,8 @@ export default function VehicleHistory({ vehicle, onBack, onOrder }) {
                   <VideoPlayer key={r.id} duration={r.sec} onExpand={() => setBig(r)} />
                   <div className="vh-play__info">
                     <small>{r.road} · {r.from}:05 ~ {r.to}:17 · {r.id + 1}/{list.length}</small>
-                    <button onClick={() => setBig(r)}>
-                      <img src={A.icExpandWhite} alt="" />
+                    <button className="btn btn--sm btn--blue" onClick={() => setBig(r)}>
+                      <img src={A.icExpandWhite} alt="" className="icon" />
                       크게 보기
                     </button>
                   </div>
@@ -152,7 +153,7 @@ function VideoModal({ vehicle, rec, onClose }) {
       <div className="vmodal" role="dialog" aria-modal="true" aria-label="영상 크게 보기">
         <div className="vmodal__head">
           <b>{vehicle.name} ({vehicle.type}) · {rec.date} {rec.from} ~ {rec.to} · {rec.road}</b>
-          <button onClick={onClose} aria-label="닫기"><img src={A.icClose20} alt="" /></button>
+          <button onClick={onClose} aria-label="닫기"><Icon name="close" /></button>
         </div>
         <div className="vmodal__body">
           <VideoPlayer duration={rec.sec} />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { A } from '../../assets.js'
-import { Dropdown } from '../../components/Controls.jsx'
+import { Dropdown, EmptyState, SearchField } from '../../components/Controls.jsx'
 import { HAZARD_GRADE_STYLE, HAZARD_GRADES, HAZARD_LIST } from '../../data/dashboard.js'
 import { HAZARD_COLORS } from '../../data/geo.js'
 
@@ -51,14 +51,11 @@ export default function HazardList({ onShowPlace }) {
         <small>총 <b>{total}</b> 구간 · 기상청 실황</small>
       </div>
       <div className="hz-tools">
-        <Dropdown value={grade} options={GRADE_OPTIONS} onChange={setGrade} className="dropdown--sm" icon={A.icChevronDown12} />
-        <Dropdown value={type} options={TYPE_OPTIONS} onChange={setType} className="dropdown--sm" icon={A.icChevronDown12} />
-        <Dropdown value={jur} options={JUR_OPTIONS} onChange={setJur} className="dropdown--sm" icon={A.icChevronDown12} />
+        <Dropdown value={grade} options={GRADE_OPTIONS} onChange={setGrade} size="sm" />
+        <Dropdown value={type} options={TYPE_OPTIONS} onChange={setType} size="sm" />
+        <Dropdown value={jur} options={JUR_OPTIONS} onChange={setJur} size="sm" />
       </div>
-      <label className="hz-search">
-        <img src={A.icSearch14} alt="" />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="도로명·읍면동 검색" />
-      </label>
+      <SearchField size="sm" value={query} onChange={setQuery} placeholder="도로명·읍면동 검색" />
       <div className="hz-table">
         <div className="hz-row hz-row--th">
           <span>구간</span><span>위험요소</span><span>노면온도</span><span>제설제</span><span>기상</span><span>등급</span>
@@ -75,7 +72,7 @@ export default function HazardList({ onShowPlace }) {
                   <small>{g.rows.length}구간</small>
                   {HAZARD_GRADES.map((gr, i) => (
                     <span key={gr} className="hz-count">
-                      <img src={HAZARD_GRADE_STYLE[gr].dot} alt="" />
+                      <i style={{ background: HAZARD_GRADE_STYLE[gr].text }} />
                       <b style={{ color: HAZARD_GRADE_STYLE[gr].text }}>{counts[i]}</b>
                     </span>
                   ))}
@@ -104,14 +101,14 @@ export default function HazardList({ onShowPlace }) {
                         <b className="hz-temp">{r.surface.toFixed(1)}℃</b>
                         <b className={r.salt < 20 ? 'hz-low' : ''}>{r.salt}%</b>
                         <span>{r.air.toFixed(1)}℃ {r.sky}</span>
-                        <span><em style={{ color: st.text, background: st.bg }}>{r.grade}</em></span>
+                        <span><em className={`grade grade--${st.tone}`}><i />{r.grade}</em></span>
                       </button>
                     )
                   })}
               </div>
             )
           })}
-          {groups.length === 0 && <p className="hz-empty">조건에 맞는 위험구간이 없습니다.</p>}
+          {groups.length === 0 && <EmptyState message="조건에 맞는 위험구간이 없습니다." />}
         </div>
         <div className="hz-foot">
           <span>{groups.length}개 읍면동 · {shown}구간</span>

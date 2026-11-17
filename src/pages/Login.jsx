@@ -46,7 +46,7 @@ export default function Login() {
           <input type="password" value={pw} onChange={(e) => { setPw(e.target.value); setError('') }} autoComplete="current-password" placeholder="비밀번호" />
         </label>
         {error && <p className="login__error" role="alert">{error}</p>}
-        <button type="submit" className="btn-primary login__submit">로그인</button>
+        <button type="submit" className="btn btn--lg btn--primary login__submit">로그인</button>
         <div className="login__hint">
           <b>목업 데모 계정</b>
           {DEMO_HINT.map((h) => (

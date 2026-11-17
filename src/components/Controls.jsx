@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { A } from '../assets.js'
+import Icon from './Icon.jsx'
 
 export function Checkbox({ checked }) {
   return <span className={`check${checked ? ' on' : ''}`}>{checked && <img src={A.icCheck} alt="" />}</span>
@@ -9,7 +10,8 @@ export function Radio({ checked }) {
   return <span className={`radio${checked ? ' on' : ''}`}>{checked && <img src={A.icRadioOn} alt="" />}</span>
 }
 
-export function Dropdown({ value, options, onChange, width, height = 32, className = '', icon = A.icChevronDown }) {
+// Select (component library) — 기본 Medium 42, size="sm" 이면 Small 34
+export function Dropdown({ value, options, onChange, width, size, className = '' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   useEffect(() => {
@@ -19,9 +21,9 @@ export function Dropdown({ value, options, onChange, width, height = 32, classNa
     return () => document.removeEventListener('mousedown', close)
   }, [open])
   return (
-    <button ref={ref} type="button" className={`dropdown ${className}`.trim()} style={{ width, height }} onClick={() => setOpen((o) => !o)}>
+    <button ref={ref} type="button" className={`dropdown${size === 'sm' ? ' dropdown--sm' : ''} ${className}`.trim()} style={{ width }} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
       <span>{value}</span>
-      <img src={icon} alt="" />
+      <Icon name="chevron-down" />
       {open && (
         <ul className="dropdown__list">
           {options.map((o) => (
@@ -43,12 +45,44 @@ export function Dropdown({ value, options, onChange, width, height = 32, classNa
   )
 }
 
-export function SearchField({ placeholder, value, onChange, icon = A.icSearch, height = 44, iconSize = 20, fontSize = 14 }) {
+// Search (component library) — 앞쪽 돋보기, 기본 Medium 42, size="sm" 이면 Small 34
+export function SearchField({ placeholder, value, onChange, onKeyDown, size, className = '', style }) {
   return (
-    <label className="search" style={{ height }}>
-      <img src={icon} alt="" style={{ width: iconSize, height: iconSize }} />
-      <input placeholder={placeholder} value={value} onChange={(e) => onChange?.(e.target.value)} style={{ fontSize }} />
+    <label className={`search${size === 'sm' ? ' search--sm' : ''} ${className}`.trim()} style={style}>
+      <Icon name="search" />
+      <input placeholder={placeholder} value={value} onChange={(e) => onChange?.(e.target.value)} onKeyDown={onKeyDown} />
     </label>
+  )
+}
+
+// Calendar (component library) — YYYY.MM.DD(W) 표시, 오른쪽 달력 아이콘. 누르면 브라우저 날짜 선택 창
+const DOW = ['일', '월', '화', '수', '목', '금', '토']
+export const fmtDate = (iso) => {
+  if (!iso) return ''
+  const d = new Date(`${iso}T00:00:00`)
+  return `${iso.replaceAll('-', '.')}(${DOW[d.getDay()]})`
+}
+export function CalendarField({ value, onChange, label, min, max, width = 160 }) {
+  const ref = useRef(null)
+  const open = () => {
+    try { ref.current?.showPicker() } catch { ref.current?.focus() }
+  }
+  return (
+    <label className="calendar" style={{ width }} onClick={(e) => { e.preventDefault(); open() }}>
+      <span className={value ? '' : 'ph'}>{value ? fmtDate(value) : 'YYYY.MM.DD(W)'}</span>
+      <Icon name="calendar" />
+      <input ref={ref} type="date" value={value} min={min} max={max} onChange={(e) => onChange(e.target.value)} aria-label={label} tabIndex={-1} />
+    </label>
+  )
+}
+
+// Feedback · Empty (component library)
+export function EmptyState({ title = '데이터 없음', message }) {
+  return (
+    <div className="empty-state" role="status">
+      <span className="empty-state__symbol" aria-hidden="true">□</span>
+      <div><b>{title}</b>{message && <small>{message}</small>}</div>
+    </div>
   )
 }
 

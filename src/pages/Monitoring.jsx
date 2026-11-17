@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { A } from '../assets.js'
-import { Dropdown } from '../components/Controls.jsx'
+import { CalendarField, Dropdown, EmptyState, SearchField } from '../components/Controls.jsx'
+import Icon from '../components/Icon.jsx'
 import { EVERY, EVERY_MIN, MOCK_TODAY, RESULTS, TARGETS, batchStore, historyStore, hms, ymd } from '../data/monitoring.js'
 import { useStore } from '../store.js'
 import './monitoring.css'
 
 // UI-SIRS-004 데이터 연계 모니터링 — UC-OMS-001-01 배치 관리 / UC-OMS-001-02 송수신 이력 조회
-const BADGE = { 수신: '#bfdbfe', 송신: '#f8cdec', 성공: '#c7f5ce', 실패: '#ffd2d5', '부분 성공': '#fedcc5', '재처리 성공': '#bfdbfe' }
+// 상태 배지 색 — component library Table status · Palette 색조
+const BADGE = { 수신: 'tone-blue', 송신: 'tone-magenta', 성공: 'tone-green', 실패: 'tone-red', '부분 성공': 'tone-orange', '재처리 성공': 'tone-purple' }
 const BATCH_PAGE = 4
 const HIST_PAGE = 8
 const DEFAULT_FILTER = { from: MOCK_TODAY, to: MOCK_TODAY, target: '전체', result: '전체', q: '' }
@@ -114,18 +116,15 @@ export default function Monitoring() {
             <span className="mcard__spacer" />
             <span className="mcard__tools">
             <b className="lbl">연계 대상</b>
-            <Dropdown value={target} options={TARGETS} onChange={(v) => { setTarget(v); setPage(1) }} width={170} height={40} />
-            <label className="search mcard__search">
-              <img src={A.icSearch} alt="" />
-              <input placeholder="배치 ID · 배치명 검색" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} />
-            </label>
+            <Dropdown value={target} options={TARGETS} onChange={(v) => { setTarget(v); setPage(1) }} width={170} />
+            <SearchField className="mcard__search" placeholder="배치 ID · 배치명 검색" value={q} onChange={(v) => { setQ(v); setPage(1) }} />
             </span>
           </div>
-          <div className="table-scroll"><table className="mtable">
+          <div className="table-scroll"><table className="mtable ltable">
             <colgroup>
               <col style={{ width: 56 }} /><col style={{ width: 136 }} /><col style={{ width: 190 }} /><col style={{ width: 164 }} />
               <col style={{ width: 86 }} /><col style={{ width: 90 }} /><col style={{ width: 94 }} /><col style={{ width: 109 }} />
-              <col style={{ width: 120 }} /><col style={{ width: 68 }} /><col style={{ width: 90 }} />
+              <col style={{ width: 120 }} /><col style={{ width: 68 }} /><col style={{ width: 124 }} />
             </colgroup>
             <thead>
               <tr>
@@ -146,59 +145,54 @@ export default function Monitoring() {
                   <td className="c"><Badge v={b.result} /></td>
                   <td className="c">{b.on ? b.next : '-'}</td>
                   <td>
-                    <button className={`toggle${b.on ? ' on' : ''}`} onClick={() => toggleUse(b)} aria-label={`${b.id} 사용 여부`} aria-pressed={b.on}>
-                      {b.on && <img src={A.icToggleOn} alt="" />}
-                    </button>
+                    <button className={`switch${b.on ? ' on' : ''}`} onClick={() => toggleUse(b)} aria-label={`${b.id} 사용 여부`} aria-pressed={b.on} />
                   </td>
                   <td>
-                    <button className="btn-outline-blue" disabled={!b.on || running === b.id} onClick={() => run(b)} title={b.on ? '지금 실행' : '사용 중지된 배치입니다'}>
+                    <button className="btn btn--sm btn--blue-outline" disabled={!b.on || running === b.id} onClick={() => run(b)} title={b.on ? '지금 실행' : '사용 중지된 배치입니다'}>
                       {running === b.id ? '실행중' : '실행'}
                     </button>
                   </td>
                 </tr>
               ))}
-              {shown.length === 0 && <tr><td colSpan={11} className="c empty">검색 결과가 없습니다.</td></tr>}
+              {shown.length === 0 && <tr><td colSpan={11} className="c empty"><EmptyState message="검색 결과가 없습니다." /></td></tr>}
             </tbody>
           </table></div>
           <Pagination page={page} pages={pages} onChange={setPage} />
         </section>
 
         <section className="mcard">
-          <div className="tabs-line mtabs" role="tablist">
+          <div className="tabs-line" role="tablist">
             {['수신', '송신'].map((t) => (
               <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => { setTab(t); setHPage(1) }}><span>{t} 이력</span><i /></button>
             ))}
           </div>
           <div className="mfilter">
             <b className="lbl">조회 기간</b>
-            <DateField value={draft.from} onChange={(from) => setDraft((d) => ({ ...d, from }))} label="조회 시작일" />
+            <CalendarField value={draft.from} max={draft.to} onChange={(from) => setDraft((d) => ({ ...d, from }))} label="조회 시작일" />
             <span>~</span>
-            <DateField value={draft.to} onChange={(to) => setDraft((d) => ({ ...d, to }))} label="조회 종료일" />
+            <CalendarField value={draft.to} min={draft.from} onChange={(to) => setDraft((d) => ({ ...d, to }))} label="조회 종료일" />
             <b className="lbl">연계 대상</b>
-            <Dropdown value={draft.target} options={TARGETS} onChange={(target) => setDraft((d) => ({ ...d, target }))} width={140} height={40} />
+            <Dropdown value={draft.target} options={TARGETS} onChange={(target) => setDraft((d) => ({ ...d, target }))} width={140} />
             <b className="lbl">처리 결과</b>
-            <Dropdown value={draft.result} options={RESULTS} onChange={(result) => setDraft((d) => ({ ...d, result }))} width={112} height={40} />
-            <label className="search" style={{ width: 160, height: 40 }}>
-              <img src={A.icSearch} alt="" />
-              <input placeholder="배치 ID · 항목명 검색" value={draft.q} onChange={(e) => setDraft((d) => ({ ...d, q: e.target.value }))} onKeyDown={(e) => e.key === 'Enter' && search()} />
-            </label>
+            <Dropdown value={draft.result} options={RESULTS} onChange={(result) => setDraft((d) => ({ ...d, result }))} width={112} />
+            <SearchField style={{ width: 200 }} placeholder="배치 ID · 항목명 검색" value={draft.q} onChange={(q) => setDraft((d) => ({ ...d, q }))} onKeyDown={(e) => e.key === 'Enter' && search()} />
             <span className="mfilter__spacer" />
-            <button className="btn-search" onClick={search}>
-              <img src={A.icSearchWhite} alt="" />
+            <button className="btn btn--primary" onClick={search}>
+              <Icon name="search" />
               조회
             </button>
-            <button className="btn-reset" onClick={reset}>초기화</button>
+            <button className="btn btn--outline" onClick={reset}>초기화</button>
           </div>
           {err && <p className="mfilter__err" role="alert">{err}</p>}
           <p className="mresult">
             {applied.from === applied.to ? applied.from : `${applied.from} ~ ${applied.to}`} · {tab} 이력 {histList.length.toLocaleString()}건
             {histList.some((r) => r.result === '실패' && !r.retried) && <em> · 미처리 실패 {histList.filter((r) => r.result === '실패' && !r.retried).length}건</em>}
           </p>
-          <div className="table-scroll"><table className="mtable">
+          <div className="table-scroll"><table className="mtable ltable">
             <colgroup>
               <col style={{ width: 70 }} /><col style={{ width: 170 }} /><col style={{ width: 150 }} /><col style={{ width: 150 }} />
               <col style={{ width: 120 }} /><col style={{ width: 80 }} /><col style={{ width: 80 }} /><col style={{ width: 110 }} />
-              <col /><col style={{ width: 96 }} />
+              <col /><col style={{ width: 124 }} />
             </colgroup>
             <thead>
               <tr>
@@ -223,13 +217,13 @@ export default function Monitoring() {
                     <td className={errRed ? 'err' : ''} title={r.err}>{r.err || '-'}</td>
                     <td>
                       {(r.result === '실패' || r.result === '부분 성공') && (r.retried ? <span className="done-tag">재처리 완료</span> : (
-                        <button className="btn-outline-blue" onClick={() => retry(r)}>{tab === '수신' ? '재수신' : '재송신'}</button>
+                        <button className="btn btn--sm btn--blue-outline" onClick={() => retry(r)}>{tab === '수신' ? '재수신' : '재송신'}</button>
                       ))}
                     </td>
                   </tr>
                 )
               })}
-              {hShown.length === 0 && <tr><td colSpan={10} className="c empty">조회 결과가 없습니다. 조회 기간·조건을 바꿔 보세요.</td></tr>}
+              {hShown.length === 0 && <tr><td colSpan={10} className="c empty"><EmptyState message="조회 결과가 없습니다. 조회 기간·조건을 바꿔 보세요." /></td></tr>}
             </tbody>
           </table></div>
           <Pagination page={hPage} pages={hPages} onChange={setHPage} />
@@ -245,16 +239,7 @@ export default function Monitoring() {
 }
 
 function Badge({ v }) {
-  return <span className="badge mbadge" style={{ background: BADGE[v] }}>{v}</span>
-}
-
-function DateField({ value, onChange, label }) {
-  return (
-    <label className="date-field">
-      <input type="date" value={value} onChange={(e) => onChange(e.target.value)} aria-label={label} />
-      <img src={A.icCalendar} alt="" />
-    </label>
-  )
+  return <span className={`tstatus ${BADGE[v] ?? 'tone-etc'}`}>{v}</span>
 }
 
 function Pagination({ page, pages, onChange }) {
@@ -291,8 +276,12 @@ function BatchEditor({ batch, onClose, onSave }) {
   }
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="배치 스케줄 수정">
-        <h3>배치 스케줄 수정</h3>
+      <div className="modal lmodal" role="dialog" aria-label="배치 스케줄 수정">
+        <header>
+          배치 스케줄 수정
+          <button type="button" onClick={onClose} aria-label="닫기"><Icon name="close" /></button>
+        </header>
+        <div className="modal__body">
         <dl>
           <dt>배치 ID</dt><dd>{batch.id}</dd>
           <dt>연계 대상</dt><dd>{batch.target} · {batch.dir}</dd>
@@ -304,13 +293,14 @@ function BatchEditor({ batch, onClose, onSave }) {
           </select>
         </label>
         <label className="modal__row">사용 여부
-          <button type="button" className={`toggle${on ? ' on' : ''}`} onClick={() => setOn((o) => !o)} aria-pressed={on}>{on && <img src={A.icToggleOn} alt="" />}</button>
+          <button type="button" className={`switch${on ? ' on' : ''}`} onClick={() => setOn((o) => !o)} aria-pressed={on} aria-label="사용 여부" />
         </label>
         {err && <p className="mfilter__err">{err}</p>}
-        <div className="modal__actions">
-          <button className="btn-reset" onClick={onClose}>취소</button>
-          <button className="btn-search" onClick={save}>저장</button>
         </div>
+        <footer className="modal__actions">
+          <button className="btn btn--outline" onClick={onClose}>취소</button>
+          <button className="btn btn--primary" onClick={save}>저장</button>
+        </footer>
       </div>
     </div>
   )

@@ -2,9 +2,10 @@
 import { createStore } from '../store.js'
 
 export const ALERT_TYPES = {
-  긴급: { bar: '#d92338', bg: '#ffe7e8', fg: '#d92338', icon: 'alert' },
-  미조치: { bar: '#dc7200', bg: '#fff4d9', fg: '#dc7200', icon: 'warning' },
-  상습: { bar: '#16a05d', bg: '#e5faed', fg: '#16a05d', icon: 'minor' },
+  // 색 · 배지 = component library Grade badge (danger · warning · mild)
+  긴급: { bar: '#d92332', bg: '#ffe8e9', fg: '#d92332', grade: 'danger', icon: 'alert' },
+  미조치: { bar: '#d97800', bg: '#fff1d7', fg: '#d97800', grade: 'warning', icon: 'warning' },
+  상습: { bar: '#169c55', bg: '#e9f8ef', fg: '#169c55', grade: 'mild', icon: 'minor' },
 }
 
 // refreeze: 재결빙 위험 구간 알림 — 종합 현황 '재결빙 위험' 목록 보기에서 모아 보여 준다

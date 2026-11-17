@@ -8,6 +8,7 @@ import VectorSource from 'ol/source/Vector.js'
 import { getArea, getLength } from 'ol/sphere.js'
 import { boundingExtent } from 'ol/extent.js'
 import { Stroke, Style, Fill, Circle as CircleStyle } from 'ol/style.js'
+import Icon from '../components/Icon.jsx'
 import { A, VEHICLE_ICONS } from '../assets.js'
 import { Checkbox, Radio } from '../components/Controls.jsx'
 import { VEHICLES } from '../data/dashboard.js'
@@ -93,7 +94,7 @@ export default function Dashboard() {
       const trails = new VectorLayer({ source: new VectorSource(), style: (f) => trailStyle(f, live.current) })
       const measureLayer = new VectorLayer({
         source: new VectorSource(),
-        style: new Style({ stroke: new Stroke({ color: '#37348f', width: 2.5, lineDash: [6, 4] }), fill: new Fill({ color: 'rgba(55,52,143,0.15)' }), image: new CircleStyle({ radius: 4, fill: new Fill({ color: '#fff' }), stroke: new Stroke({ color: '#37348f', width: 2 }) }) }),
+        style: new Style({ stroke: new Stroke({ color: '#312f82', width: 2.5, lineDash: [6, 4] }), fill: new Fill({ color: 'rgba(55,52,143,0.15)' }), image: new CircleStyle({ radius: 4, fill: new Fill({ color: '#fff' }), stroke: new Stroke({ color: '#312f82', width: 2 }) }) }),
       })
       // 노선 라인: 구간(실제 링크)마다 feature 하나
       ROUTES.forEach((r) =>
@@ -481,7 +482,7 @@ export default function Dashboard() {
               </>
             ) })()}
           </dl>
-          <button className="seg-pop__close" onClick={() => setSegCode(null)} aria-label="닫기"><img src={A.icPopClose} alt="" /></button>
+          <button className="seg-pop__close" onClick={() => setSegCode(null)} aria-label="닫기"><Icon name="close" /></button>
           {/* 재결빙 위험 구간이면 판정 근거(노면온도 · 제설제 잔류)를 함께 표시 */}
           {seg.refreeze && (
             <div className="seg-pop__refreeze">

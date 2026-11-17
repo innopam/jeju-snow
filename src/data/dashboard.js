@@ -30,9 +30,10 @@ const hash = (str) => [...str].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 997
 
 // 제설 차량 목록 (UI-001-04) — mapId 는 지도 위 차량 아이콘과 연결
 export const VEHICLE_STATUS = {
-  working: { label: '제설 중', bg: '#fff8d9', fg: '#b98900', dot: A.dotWorking },
-  standby: { label: '대기', bg: '#edf4ff', fg: '#3979ee', dot: A.dotStandby },
-  done: { label: '종료', bg: '#ededf0', fg: '#6b6b73', dot: A.dotDone },
+  // 배지 = component library Grade badge 색조 (mild · vehicle · neutral)
+  working: { label: '제설 중', tone: 'mild' },
+  standby: { label: '대기', tone: 'vehicle' },
+  done: { label: '종료', tone: 'neutral' },
 }
 
 // 관할: 지방도(1100도로·5·16도로·평화로·번영로)는 도청, 차고지·노선 위치에 따라 제주시/서귀포시
@@ -74,9 +75,10 @@ export const VEHICLES = [
 // 위험구간 목록 (GIS-003) — 읍면동 묶음 · 노면온도 순. 색 = 위험 유형(HAZARD_COLORS), 굵기 = 등급
 export const HAZARD_GRADES = ['심각', '경계', '주의']
 export const HAZARD_GRADE_STYLE = {
-  심각: { text: '#f93c65', bg: 'rgba(249,60,101,0.16)', dot: A.dotGradeSevere, bar: 7 },
-  경계: { text: '#e8701a', bg: 'rgba(255,138,61,0.16)', dot: A.dotGradeAlert, bar: 5 },
-  주의: { text: '#b98100', bg: 'rgba(252,190,45,0.16)', dot: A.dotGradeCaution, bar: 3 },
+  // 배지 = component library Grade badge (1등급 danger · 2등급 warning · 3등급 mild)
+  심각: { tone: 'danger', text: '#d92332', bar: 7 },
+  경계: { tone: 'warning', text: '#d97800', bar: 5 },
+  주의: { tone: 'mild', text: '#169c55', bar: 3 },
 }
 const ROW_KEYS = ['road', 'dong', 'type', 'grade', 'surface', 'salt', 'air', 'sky']
 const row = (...vals) => Object.fromEntries(ROW_KEYS.map((k, i) => [k, vals[i]]))

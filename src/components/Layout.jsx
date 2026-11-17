@@ -6,7 +6,8 @@ import { ALERT_TYPES, alertStore, pushIncoming } from '../data/alerts.js'
 import { PAGE_TITLES } from '../data/routes.js'
 import { useStore } from '../store.js'
 import { BP, useMedia } from '../useMedia.js'
-import { Toast } from './Controls.jsx'
+import { EmptyState, Toast } from './Controls.jsx'
+import Icon from './Icon.jsx'
 import './layout.css'
 
 const MENU = [
@@ -92,22 +93,22 @@ export default function Layout() {
             <span /><span /><span />
           </button>
           <nav className="crumb" aria-label="현재 위치">
-            <span>제설·결빙 대응 시스템</span>
-            <img src={A.icCrumb} alt="" />
+            <NavLink to="/">홈</NavLink>
+            <span>/</span>
             <h1>{title}</h1>
           </nav>
           <div className="topbar__right">
             <p className="topbar__user" title={`${session?.role} · 로그인 ${session?.loginAt ?? ''}`}>
-              <span className="topbar__avatar"><img src={A.icUser} alt="" /></span>
-              <span className="topbar__name">{session?.dept} {session?.name} 님</span>
+              <span className="topbar__avatar"><Icon name="user" /></span>
+              <span className="topbar__name"><b>{session?.dept} {session?.name}</b><small>({session?.role})</small></span>
             </p>
             <button className="bell" onClick={() => setAlertFilter((f) => (f ? null : '전체'))} aria-label={`위험 이벤트 알림 ${unread}건`}>
-              <img src={A.icBell} alt="" />
+              <Icon name="bell" />
               {unread > 0 && <span className="bell__count">{unread > 99 ? 99 : unread}</span>}
             </button>
             <button className="logout-pill" onClick={onLogout}>
+              <Icon name="logout" />
               로그아웃
-              <img src={A.icPillArrow} alt="" />
             </button>
           </div>
           {/* 실시간 알림 바 — GNB 레이어 안에 두어 GNB 위로 겹쳐 보이고, 알림 패널보다는 아래 */}
@@ -157,10 +158,10 @@ function AlertDropdown({ alerts, filter, onFilter, onClose, onReadAll, onSelect 
         <p>위험 이벤트 알림</p>
         <button onClick={onReadAll}>모두 읽음</button>
       </div>
-      <div className="alert-dd__chips" role="tablist">
+      <div className="count-tabs alert-dd__chips" role="tablist">
         {FILTERS.map((f) => (
           <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? 'on' : ''} onClick={() => onFilter(f)}>
-            {f} {count(f)}
+            {f} <em>{count(f)}건</em>
           </button>
         ))}
       </div>
@@ -177,7 +178,7 @@ function AlertDropdown({ alerts, filter, onFilter, onClose, onReadAll, onSelect 
               <span className="alert-row__text">
                 <b>{a.title}</b>
                 <small>{a.desc}</small>
-                <em style={{ background: t.bg, color: t.fg }}>{a.type}</em>
+                <em className={`grade grade--${t.grade}`}>{a.type}</em>
               </span>
               <span className="alert-row__right">
                 <small>{a.time}</small>
@@ -186,7 +187,7 @@ function AlertDropdown({ alerts, filter, onFilter, onClose, onReadAll, onSelect 
             </button>
           )
         })}
-        {list.length === 0 && <p className="alert-dd__empty">알림이 없습니다.</p>}
+        {list.length === 0 && <div className="alert-dd__empty"><EmptyState message="해당 알림이 없습니다." /></div>}
       </div>
     </div>
   )

@@ -16,7 +16,7 @@ export default function DashboardPanel({ onShowPlace }) {
     <div className="dp">
       <div className="dp__head">
         <p className="section-title">제설 현황</p>
-        <Dropdown value={jur} options={JURISDICTIONS} onChange={setJur} width={110} />
+        <Dropdown value={jur} options={JURISDICTIONS} onChange={setJur} width={110} size="sm" />
       </div>
       <div className="stat-split">
         {SNOW_STATUS_KEYS.map((s, i) => (
@@ -38,7 +38,7 @@ export default function DashboardPanel({ onShowPlace }) {
         <div>
           <span className="warn-banner__ic">!</span>
           <div className="warn-banner__txt">
-            <p><b>재결빙 위험 {d.refreeze}구간</b><em>조치 필요</em></p>
+            <p><b>재결빙 위험 {d.refreeze}구간</b><em className="grade grade--danger">조치 필요</em></p>
             <small>최우선 {d.refreezeTop}</small>
           </div>
           <button data-open-alerts onClick={() => openAlerts('재결빙')}>목록 보기 ›</button>
@@ -46,7 +46,7 @@ export default function DashboardPanel({ onShowPlace }) {
         <div>
           <span className="warn-banner__ic">!</span>
           <div className="warn-banner__txt">
-            <p><b>작업 누락 의심 {d.missing}구간</b><em>미조치</em></p>
+            <p><b>작업 누락 의심 {d.missing}구간</b><em className="grade grade--warning">미조치</em></p>
             <small>최장 {d.missingTop}</small>
           </div>
           <button data-open-alerts onClick={() => openAlerts('미조치')}>목록 보기 ›</button>

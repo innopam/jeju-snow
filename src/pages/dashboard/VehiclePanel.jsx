@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { A } from '../../assets.js'
-import { Dropdown } from '../../components/Controls.jsx'
+import { Dropdown, EmptyState, SearchField } from '../../components/Controls.jsx'
 import { JURISDICTIONS, VEHICLES, VEHICLE_STATUS } from '../../data/dashboard.js'
 import VehicleHistory from './VehicleHistory.jsx'
 
@@ -51,7 +51,7 @@ export default function VehiclePanel({ selected, onSelect }) {
     <div className="vp">
       <div className="dp__head">
         <p className="section-title">차량 운행 현황</p>
-        <Dropdown value={jur} options={JURISDICTIONS} onChange={setJur} width={110} />
+        <Dropdown value={jur} options={JURISDICTIONS} onChange={setJur} width={110} size="sm" />
       </div>
       <div className="stat-split">
         {STATUS_SPLIT.map((s) => (
@@ -65,15 +65,11 @@ export default function VehiclePanel({ selected, onSelect }) {
       <hr />
       <div className="vp__list-sec">
         <p className="section-title">차량 목록</p>
-        <label className="search search--sm">
-          <img src={A.icSearch18} alt="" />
-          <input placeholder="차량번호 · 호차 검색" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </label>
-        <div className="type-chips">
+        <SearchField size="sm" placeholder="차량번호 · 호차 검색" value={query} onChange={setQuery} />
+        <div className="count-tabs type-chips" role="tablist">
           {TYPES.map((t) => (
-            <button key={t} className={type === t ? 'on' : ''} onClick={() => setType(t)} aria-pressed={type === t}>
-              {t}
-              <span>{t === '전체' ? inJur.length : inJur.filter((v) => v.type === t).length}</span>
+            <button key={t} role="tab" className={type === t ? 'on' : ''} onClick={() => setType(t)} aria-selected={type === t}>
+              {t} <em>{t === '전체' ? inJur.length : inJur.filter((v) => v.type === t).length}</em>
             </button>
           ))}
         </div>
@@ -91,15 +87,12 @@ export default function VehiclePanel({ selected, onSelect }) {
             const isSel = selected === v.i
             return (
               <div key={v.i} className={`vrow${isSel ? ' sel' : ''}`} onClick={() => onSelect(v.i)}>
-                <span className="vrow__type">{v.type}</span>
+                <span className="pbadge tone-etc vrow__type">{v.type}</span>
                 <span className="vrow__info">
                   <b>{v.name}</b>
                   <small style={{ color: v.delayed ? '#dc7200' : undefined }}>{v.info}</small>
                 </span>
-                <span className="vrow__st" style={{ background: st.bg, color: st.fg }}>
-                  <img src={st.dot} alt="" />
-                  {st.label}
-                </span>
+                <span className={`grade grade--${st.tone} vrow__st`}><i />{st.label}</span>
                 <span className="vrow__bat" title={low ? '배터리 20% 이하' : undefined}>
                   <i><i style={{ width: Math.max(1, (v.battery / 100) * 12), background: low ? '#d92338' : '#16a05d' }} /></i>
                   <small style={{ color: low ? '#d92338' : undefined }}>{v.battery}%</small>
@@ -120,7 +113,7 @@ export default function VehiclePanel({ selected, onSelect }) {
               </div>
             )
           })}
-          {list.length === 0 && <p className="vlist-empty">조건에 맞는 차량이 없습니다.</p>}
+          {list.length === 0 && <EmptyState message="조건에 맞는 차량이 없습니다." />}
         </div>
       </div>
     </div>
