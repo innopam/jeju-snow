@@ -220,25 +220,28 @@ button:hover > .radio.on { border-color: #2457d6; }
 .badge { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 24px; padding: 4px 9px; border-radius: 999px; font-size: 10px; font-weight: 750; line-height: 15px; color: var(--g900); white-space: nowrap; font-style: normal; }
 
 /* Tab — Underline · Count · Pill */
-.tabs-line { display: flex; gap: 24px; border-bottom: 1px solid var(--g200); }
-.tabs-line button { flex: none; padding: 10px 8px; border-bottom: 2px solid transparent; margin-bottom: -1px; font-size: 14px; font-weight: 750; line-height: 21px; color: var(--g500); }
-.tabs-line button span { display: block; white-space: nowrap; }
+/* 탭 크기는 항상 동일 — 탭 칸은 같은 너비로 나눈다 */
+.tabs-line { display: flex; gap: 0; border-bottom: 1px solid var(--g200); }
+.tabs-line button { flex: 1 1 0; min-width: 0; text-align: center; padding: 10px 8px; border-bottom: 2px solid transparent; margin-bottom: -1px; font-size: 14px; font-weight: 750; line-height: 21px; color: var(--g500); }
+.tabs-line button span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tabs-line--fit button { flex: 0 0 120px; } /* 넓은 카드 안에서는 탭 칸을 120px 로 같게 */
 .tabs-line button i { display: none; }
 .tabs-line button:hover:not(.on) { color: #333; }
 .tabs-line button.on { border-color: #111; color: #111; }
-.count-tabs { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.count-tabs button { padding: 9px 16px; border: 1px solid transparent; border-radius: 10px; background: var(--g100); color: var(--g500); font-size: 14px; font-weight: 800; line-height: 21px; white-space: nowrap; }
+.count-tabs { display: flex; align-items: center; gap: 8px; }
+.count-tabs button { flex: 1 1 0; min-width: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; padding: 9px 16px; border: 1px solid transparent; border-radius: 10px; background: var(--g100); color: var(--g500); font-size: 14px; font-weight: 800; line-height: 21px; white-space: nowrap; }
 .count-tabs button.on { border-color: var(--p700); background: #fff; color: #111; }
 .count-tabs button.on em { color: #ff5a16; }
 .count-tabs em { font-style: normal; }
 .pill-tabs { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.pill-tabs .pill { min-width: 56px; }
 .pill { padding: 7px 16px; border: 1px solid var(--g200); border-radius: 999px; background: #fff; color: var(--g700); font-size: 14px; font-weight: 800; line-height: 21px; }
 .pill:hover:not(.on) { background: var(--g50); }
 .pill.on { border-color: var(--navy); background: var(--navy); color: #fff; }
 
 /* Label tab (Small) */
 .label-tabs { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
-.label-tabs button { min-width: 72px; min-height: 36px; padding: 7px 16px; border: 1px solid transparent; border-radius: 999px; background: #fff; color: #111; font-size: 14px; font-weight: 800; line-height: 21px; }
+.label-tabs button { flex: 1 1 0; min-width: 72px; min-height: 36px; padding: 7px 16px; border: 1px solid transparent; border-radius: 999px; background: #fff; color: #111; font-size: 14px; font-weight: 800; line-height: 21px; }
 .label-tabs button:hover:not(.on) { background: #f6f6f8; color: #666; }
 .label-tabs button.on { border-color: var(--navy); }
 .label-tabs--sm button { min-width: 62px; min-height: 30px; padding: 5px 13px; font-size: 11px; line-height: 16px; }

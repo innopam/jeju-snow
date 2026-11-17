@@ -201,7 +201,7 @@
 /* 제설 차량 현황 */
 .vp__list-sec { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
 .type-chips { gap: 6px; }
-.type-chips button { padding: 6px 11px; font-size: 13px; }
+.type-chips button { padding: 6px 4px; font-size: 12px; }
 .vlist-head { display: flex; gap: 10px; align-items: center; background: #f0f1f4; border-radius: 6px; padding: 6px 10px 6px 12px; font-size: 11px; font-weight: 500; color: #777; }
 .vlist { flex: 1; min-height: 240px; overflow-y: auto; scrollbar-width: none; }
 .vrow { position: relative; display: flex; align-items: center; gap: 10px; height: 52px; padding: 9px 10px 9px 12px; border-bottom: 1px solid #e4e7ec; cursor: pointer; }
@@ -446,7 +446,6 @@
   .side-panel__inner { height: calc(100% - 48px); border-left: 0; box-shadow: none; padding: 4px 16px 16px; }
   .vlist { min-height: 0; max-height: none; }
   .vp__list-sec { min-height: 320px; }
-  .type-chips { flex-wrap: wrap; }
   .stat-split b { font-size: 18px; }
   .warn-banner__txt small { white-space: normal; }
 

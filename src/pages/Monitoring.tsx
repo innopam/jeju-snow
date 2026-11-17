@@ -162,7 +162,7 @@ export default function Monitoring() {
         </section>
 
         <section className="mcard">
-          <div className="tabs-line" role="tablist">
+          <div className="tabs-line tabs-line--fit" role="tablist">
             {['수신', '송신'].map((t) => (
               <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => { setTab(t); setHPage(1) }}><span>{t} 이력</span><i /></button>
             ))}
