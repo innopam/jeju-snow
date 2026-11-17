@@ -65,8 +65,8 @@
 .breadcrumb b { font-weight: 700; }
 
 /* 지도 도구 */
-.map-tools { position: absolute; top: 63px; right: calc(var(--panel-w) + 16px); display: flex; flex-direction: column; align-items: flex-end; gap: 16px; z-index: 4; transition: right .25s; }
-.panel-closed .map-tools, .panel-closed .legend { right: 46px; }
+.map-tools { position: absolute; top: 24px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 16px; z-index: 12; } /* 화면 오른쪽 위 고정 — 우측 패널 위에 겹쳐도 됨 */
+.panel-closed .legend { right: 46px; }
 .map-tools__base { display: flex; gap: 8px; }
 .thumb { background: #fff; border-radius: 4px; padding: 1px; box-shadow: 0 0 8px rgba(0,0,0,.16); display: flex; flex-direction: column; align-items: center; border: 1px solid transparent; }
 .thumb img { width: 66px; height: 29px; object-fit: cover; border-radius: 3px 3px 0 0; }
@@ -80,10 +80,12 @@
 .tool:hover { background: var(--g50); }
 /* Tooltip (component library) — 왼쪽 꼬리 */
 .tool__tip {
-  position: absolute; right: calc(100% + 10px); top: 50%; transform: translateY(-50%); padding: 8px 10px; border-radius: 6px;
+  display: none; position: absolute; right: calc(100% + 10px); top: 50%; transform: translateY(-50%); padding: 8px 10px; border-radius: 6px;
   background: var(--p900); color: #fff; font-size: 12px; line-height: 18px; white-space: nowrap; pointer-events: none;
 }
 .tool__tip img { display: none; }
+/* 도움말은 마우스를 올리거나 키보드로 선택했을 때만 */
+.tool:hover .tool__tip, .tool:focus-visible .tool__tip { display: block; }
 .tool__tip::after { content: ''; position: absolute; right: -5px; top: 50%; width: 10px; height: 10px; background: var(--p900); transform: translateY(-50%) rotate(45deg); border-radius: 1px; }
 
 /* 구간 정보 팝업 */
@@ -396,14 +398,12 @@
 
 /* 데스크톱: 지도 도구 위치 (패널 폭 426 · 시안 배치) */
 @media (min-width: 1280px) {
-  .map-tools { top: 24px; }
   .map-tools__base { zoom: 1.176; } /* 지도 썸네일은 라이브러리에 없어 시안(1.176배) 크기 유지 */
 }
 
 /* 태블릿: 우측 패널은 지도 위에 겹쳐 열리고, 기본은 접힘 */
 @media (max-width: 1279px) {
-  .tool__tip { display: none; }
-  .map-tools { top: 13px; }
+  .map-tools { top: 16px; }
   .breadcrumb { font-size: 13px; }
 }
 
