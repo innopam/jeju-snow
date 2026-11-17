@@ -65,7 +65,8 @@ img { display: block; }
 
 /* LNB — component library Base Item(LNB) : 캡슐 메뉴 44px · 선택 #312f82 */
 .lnb {
-  width: 240px; flex: none; background: #111; position: relative;
+  width: 240px; flex: none; background: #111; position: sticky; top: 0; align-self: flex-start;
+  height: 100vh; height: 100dvh; /* 메뉴 영역은 항상 화면 아래 끝까지 (스크롤해도 따라옴) */
   display: flex; flex-direction: column; padding: 17px 14px; transition: width .2s;
 }
 .lnb.collapsed { width: 72px; }
@@ -79,7 +80,7 @@ img { display: block; }
 }
 .lnb__collapse img { width: 18px; height: 18px; transition: transform .2s; }
 .lnb.collapsed .lnb__collapse img { transform: rotate(180deg); }
-.lnb__menu { display: flex; flex-direction: column; gap: 8px; }
+.lnb__menu { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #444 transparent; }
 .lnb__item {
   display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 9px 13px; border-radius: 999px;
   background: #202020; color: #ddd; font-size: 14px; text-decoration: none; white-space: nowrap; overflow: hidden;
@@ -87,7 +88,7 @@ img { display: block; }
 .lnb__item img { width: 22px; height: 22px; flex: none; }
 .lnb__item.active { background: var(--p600); color: #fff; }
 .lnb__item:hover:not(.active) { background: #2a2a2a; }
-.lnb__bottom { margin-top: auto; border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.lnb__bottom { flex: none; margin-top: 8px; border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; }
 .lnb__sub {
   display: flex; align-items: center; gap: 9px; padding: 10px 11px; color: rgba(255, 255, 255, .7); font-size: 14px;
   text-decoration: none; border-radius: 999px; white-space: nowrap;
