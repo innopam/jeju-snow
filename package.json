@@ -5,21 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/index.html dist/404.html",
+    "typecheck": "tsc -b",
+    "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
     "ol": "^10.11.0",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.2",
     "oxlint": "^1.88.0",
-    "vite": "^8.3.4"
+    "typescript": "6.0.3",
+    "vite": "8.2.1"
   }
 }

@@ -1,7 +1,7 @@
 # 제주 제설·결빙 대응 시스템 — 프론트엔드 목업
 
 Figma 시안(포트홀 flow · `448:1169`)을 기반으로 만든 **Vite + React 19 SPA 목업**입니다.
-백엔드 없이 모든 데이터는 `src/data/*.js`의 목업 데이터로 동작하며, GitHub Pages에 정적으로 배포됩니다.
+백엔드 없이 모든 데이터는 `src/data/*.ts`의 목업 데이터로 동작하며, GitHub Pages에 정적으로 배포됩니다.
 
 - 배포 주소: https://innopamsolution.github.io/jeju-snow/
 - 코드 저장소: [innopam/jeju-snow](https://github.com/innopam/jeju-snow) · 화면 배포 저장소: [innopamSolution/jeju-snow](https://github.com/innopamSolution/jeju-snow)
@@ -44,7 +44,7 @@ Figma 시안(포트홀 flow · `448:1169`)을 기반으로 만든 **Vite + React
 
 - 인증키는 `VITE_VWORLD_KEY` 환경변수로 주입합니다. 로컬은 `.env.example`을 `.env.local`로 복사해 키를 넣고, 배포는 GitHub 저장소 Secret `VWORLD_KEY`에 등록합니다.
 - 키가 없으면 개발용 임시 배경지도(OpenStreetMap)로 표시됩니다.
-- 노선·구간·차량·CCTV 좌표(`src/data/geo.js`)는 목업용 근사치이며, 운영 시 스마트빌리지 인프라 연계 데이터로 교체합니다.
+- 노선·구간·차량·CCTV 좌표(`src/data/geo.ts`)는 목업용 근사치이며, 운영 시 스마트빌리지 인프라 연계 데이터로 교체합니다.
 
 ## 반응형 지원
 
@@ -58,15 +58,22 @@ Figma 시안(포트홀 flow · `448:1169`)을 기반으로 만든 **Vite + React
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173/jeju-snow/
-npm run build    # dist/ 생성 (SPA 라우팅용 404.html 포함)
+npm run dev        # PC http://localhost:5173/jeju-snow/ · 모바일 http://localhost:5173/jeju-snow/mobile.html
+npm run typecheck  # TypeScript 타입 검사 (tsc -b)
+npm run build      # 타입 검사 후 dist/ 생성 (PC·모바일 HTML, SPA 라우팅용 404.html 포함)
 ```
 
 ## 기술 스택
 
-- React 19 · React Router 7 (`BrowserRouter`, `basename=/jeju-snow/`)
-- Vite 8 (`base: '/jeju-snow/'`)
-- 순수 CSS (Figma 변수 기반 CSS 커스텀 프로퍼티), 외부 UI 라이브러리 없음
+| 구분 | 기술 | 버전 | 비고 |
+|---|---|---|---|
+| 화면 | React / React DOM | 19.2.8 | PC·모바일 React 진입점 |
+| 언어 | TypeScript | 6.0.3 | 화면 코드(.ts/.tsx) 및 타입 검사 (`strict`) |
+| 빌드 | Vite | 8.2.1 | PC·모바일 HTML을 빌드 입력으로 사용 |
+
+- 진입점: PC `index.html` → `src/main.pc.tsx` (`BrowserRouter`, `basename=/jeju-snow/`), 모바일 `mobile.html` → `src/main.mobile.tsx` (`HashRouter`, 주소 `mobile.html#/stats`). 화면 컴포넌트는 함께 쓰고 화면 폭에 따라 반응형으로 배치합니다. 휴대폰으로 PC 주소를 열면 모바일 진입점으로 넘어갑니다(`?pc` 를 붙이면 PC 유지).
+- React Router 7, 버전은 `package.json`에 정확히 고정(`^` 없음)
+- UI: 제주도 component library(component.html) 기준 — Pretendard 글꼴(번들 포함), 버튼·입력·탭·표·배지·팝업 등. 순수 CSS(CSS 커스텀 프로퍼티), 외부 UI 라이브러리 없음
 - 지도: OpenLayers + 브이월드(K-Geo플랫폼) 배경지도, 노선은 벡터 레이어, 마커는 실제 경위도 기준
 
 ## 배포

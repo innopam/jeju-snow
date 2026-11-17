@@ -1,0 +1,103 @@
+import { HAZARD_ZONES, ROUTES, SEGMENTS_GEO, WEATHER_GEO, edgeMid, nearestRegionGeo } from './geo'
+import type { LonLat } from './geo'
+
+// 제설 구간 목업 데이터 (지도 좌표는 data/geo.js 의 SEGMENTS_GEO)
+
+export const STATE_COLOR: Record<string, string> = { 미작업: '#f93c65', '제설 필요': '#ff8a3d', 진행중: '#fcbe2d', 완료: '#00b69b' }
+export const RISK_COLOR: Record<string, string> = { 심각: '#e7000b', 경계: '#e0661a', 주의: '#e7000b', 관심: '#16a05d' }
+
+// UC-GIS-009 제설 작업 상태 및 재결빙 위험 구간 / 구간 정보 레이어
+export interface SegWeather {
+  temp: number
+  sky: string
+  hum: number
+  rain: number
+  snow: number
+}
+export interface Segment {
+  code: string
+  road: string
+  place: string
+  state: string
+  risk: string
+  hazard: string
+  refreeze?: boolean
+  roadTemp?: number
+  residue?: number
+  habitual?: boolean
+  jur?: string
+  region?: string
+  wx?: SegWeather
+  // 노선 구간(edge) 정보
+  route?: string
+  idx?: number
+  at?: LonLat
+  link?: number
+}
+export interface RouteSegment extends Segment {
+  route: string
+  idx: number
+  at: LonLat
+  link: number
+}
+export const SEGMENTS: Segment[] = [
+  { code: 'K-12', road: '1100도로', place: '성판악', state: '진행중', risk: '심각', hazard: '결빙', refreeze: true, roadTemp: -2.4, residue: 12, jur: '도청', region: '제주시', wx: { temp: -4.6, sky: '눈', hum: 78, rain: 0.4, snow: 0.5 } },
+  { code: 'K-16-2', road: '5·16도로', place: '교래', state: '제설 필요', risk: '심각', hazard: '적설', refreeze: true, roadTemp: -1.8, residue: 18, jur: '도청', region: '조천읍' },
+  { code: 'P-2', road: '평화로', place: '광령', state: '미작업', risk: '경계', hazard: '결빙', jur: '도청', region: '애월읍' },
+  { code: 'B-4', road: '번영로', place: '대천', state: '미작업', risk: '경계', hazard: '결빙', refreeze: true, roadTemp: -0.9, residue: 24, jur: '도청', region: '조천읍' },
+  { code: 'V-2', road: '비자림로', place: '송당', state: '미작업', risk: '주의', hazard: '적설', jur: '제주시', region: '구좌읍' },
+  { code: 'S-1', road: '산록도로', place: '안덕', state: '완료', risk: '주의', hazard: '적설', habitual: true, jur: '서귀포시', region: '안덕면' },
+  { code: 'N-3', road: '남조로', place: '수망', state: '진행중', risk: '주의', hazard: '결빙', habitual: true, jur: '서귀포시', region: '남원읍' },
+  { code: 'H-1', road: '한창로', place: '한경', state: '완료', risk: '관심', hazard: '습기', habitual: true, jur: '제주시', region: '한경면' },
+]
+export const segName = (s: Segment) => `${s.road} · ${s.place} (${s.code})`
+
+// ── 노선 구간(edge) 단위 정보 ─────────────────────────────
+// 노선 구간 = 실제 노선 링크 하나. 지도에서 구간 하나를 고르면 그 구간의 정보를 보여준다.
+// 위 SEGMENTS(대표 관측 구간)는 가장 가까운 구간에 겹쳐 같은 코드·정보를 쓰고, 나머지는 노선 데이터에서 만든다.
+
+const ROUTE_PREFIX: Record<string, string> = { '1100도로': 'K', '5·16도로': 'M', 평화로: 'P', 번영로: 'B', 산록도로: 'S', 비자림로: 'V', 남조로: 'N' }
+// 노면 상태 → 위험요소 · 재결빙 위험 등급 (위험구간 레이어에 속하지 않는 구간)
+const SURFACE_RISK: Record<string, [string, string]> = { 아이스: ['결빙', '경계'], 적설: ['적설', '주의'], 슬러시: ['적설', '주의'], 젖음: ['없음', '주의'], 습기: ['없음', '관심'], 건조: ['없음', '관심'], 오류: ['확인 필요', '관심'] }
+const d2 = (a: LonLat, b: LonLat) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 997, 7)
+
+export const ROUTE_SEGMENTS: RouteSegment[] = ROUTES.flatMap((r) =>
+  r.edges.map((e, idx): RouteSegment => {
+    const at = edgeMid(e)
+    const zone = HAZARD_ZONES.find((z) => z.route === r.name && idx >= z.from && idx <= z.to)
+    const [hazard, risk] = zone ? [zone.type, zone.grade] : SURFACE_RISK[r.surface[idx]]
+    const code = `${ROUTE_PREFIX[r.name]}-L${idx + 1}` // 링크(구간) 번호 — 대표 관측 구간 코드(K-12 등)와 구분
+    const refreeze = r.states[idx] !== '완료' && (r.surface[idx] === '아이스' || zone?.type === '결빙')
+    const h = hash(code)
+    return {
+      code, road: r.name, place: nearestRegionGeo(at).name.replace(' 동지역', ''), route: r.name, idx, at, link: r.links[idx],
+      state: r.states[idx], risk, hazard, refreeze,
+      ...(refreeze && { roadTemp: -(0.5 + (h % 25) / 10).toFixed(1) * 1, residue: 8 + (h % 22) }),
+    }
+  }),
+)
+
+// 대표 관측 구간을 가장 가까운 노선 구간에 덮어쓰고, 표시 위치도 그 구간(실제 링크) 위로 옮긴다
+SEGMENTS.forEach((s) => {
+  const geo = SEGMENTS_GEO[s.code]
+  const cands = ROUTE_SEGMENTS.filter((e) => e.road === s.road)
+  if (!geo || !cands.length) return
+  const near = cands.reduce((b, e) => (d2(e.at, geo) < d2(b.at, geo) ? e : b))
+  SEGMENTS_GEO[s.code] = near.at
+  Object.assign(near, { ...s, at: near.at, route: near.route, idx: near.idx, link: near.link })
+})
+
+// 구간 기상현황 — 가장 가까운 관측소 실황 (목업: 습도·강수·신적설은 구간 코드로 고정 값)
+export function segWeather(s: Segment): SegWeather {
+  if (s.wx) return s.wx
+  const at = segAt(s)
+  const st = WEATHER_GEO.reduce((b, w) => (d2(w.at, at) < d2(b.at, at) ? w : b))
+  const h = hash(s.code)
+  const wet = st.sky === '눈' || st.sky === '진눈깨비'
+  return { temp: st.temp, sky: st.sky, hum: 62 + (h % 30), rain: wet ? +(0.1 + (h % 6) / 10).toFixed(1) : 0, snow: st.sky === '눈' ? +(0.2 + (h % 5) / 10).toFixed(1) : 0 }
+}
+
+const ALL = [...ROUTE_SEGMENTS, ...SEGMENTS.filter((s) => !ROUTE_SEGMENTS.some((e) => e.code === s.code))]
+export const findSegment = (code: string | null): Segment | null => ALL.find((s) => s.code === code) ?? null
+export const segAt = (s: Segment): LonLat => s.at ?? SEGMENTS_GEO[s.code]

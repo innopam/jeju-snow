@@ -65,7 +65,7 @@
 .breadcrumb b { font-weight: 700; }
 
 /* 지도 도구 */
-.map-tools { position: absolute; top: 24px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 16px; z-index: 12; } /* 화면 오른쪽 위 고정 — 우측 패널 위에 겹쳐도 됨 */
+.map-tools { position: absolute; top: 24px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 16px; z-index: 4; } /* 화면 오른쪽 위 고정 — 지도는 바탕 기능이라 우측 패널이 위로 덮는다 */
 .panel-closed .legend { right: 46px; }
 .map-tools__base { display: flex; gap: 8px; }
 .thumb { background: #fff; border-radius: 4px; padding: 1px; box-shadow: 0 0 8px rgba(0,0,0,.16); display: flex; flex-direction: column; align-items: center; border: 1px solid transparent; }
