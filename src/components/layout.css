@@ -1,6 +1,6 @@
 /* 알림 드롭다운 · 위험 이벤트 (UI-001-05) */
 .alert-dd {
-  position: absolute; right: 22px; top: 70px; width: 420px; background: #fff; border: 1px solid var(--border-default);
+  position: absolute; right: 22px; top: 50px; width: 420px; background: #fff; border: 1px solid var(--border-default);
   border-radius: 12px; overflow: hidden; z-index: 60; box-shadow: 0 8px 24px rgba(16, 24, 40, .12);
 }
 .alert-dd__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border-default); }
@@ -23,7 +23,7 @@
 
 /* 실시간 알림 배너 */
 .rt-banner {
-  position: absolute; top: 84px; left: calc(50% - 190px); transform: translateX(-50%); z-index: 40;
+  position: absolute; top: 64px; left: calc(50% - 190px); transform: translateX(-50%); z-index: 40;
   display: flex; align-items: center; gap: 8px; padding: 14px 16px; background: #fff;
   border: 1px solid var(--border-default); border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 24, 40, .08);
   animation: rt-in .35s ease-out;
@@ -39,7 +39,7 @@
 .alert-dd__empty { padding: 16px; border-top: 1px solid var(--border-default); }
 
 @media (max-width: 767px) {
-  .alert-dd { position: fixed; top: 56px; left: 8px; right: 8px; width: auto; }
+  .alert-dd { position: fixed; top: 52px; left: 8px; right: 8px; width: auto; }
   .alert-dd__list { max-height: calc(100vh - 190px); }
   .rt-banner { position: fixed; left: 50% !important; top: auto; bottom: 150px; max-width: calc(100vw - 24px); width: max-content; flex-wrap: wrap; padding: 10px 12px; row-gap: 6px; }
 }

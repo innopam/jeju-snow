@@ -96,9 +96,9 @@ img { display: block; }
 .lnb__sub.active { background: var(--p600); color: #fff; }
 .lnb__sub:hover:not(.active) { background: #202020; color: #fff; }
 
-/* Header — component library Header·Web : 72px · 경로 12px · 사용자 · 알림 · 로그아웃 */
+/* Header — 레이아웃 기준 Top Area H52 (component library Header·Web 구성: 경로 12px · 사용자 · 알림 · 로그아웃) */
 .topbar {
-  height: 72px; flex: none; background: #fff; border-bottom: 1px solid var(--g200);
+  height: 52px; flex: none; background: #fff; border-bottom: 1px solid var(--g200);
   display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 22px; position: relative; z-index: 30;
 }
 .crumb { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; overflow: hidden; font-size: 12px; line-height: 18px; color: var(--g900); }
@@ -293,7 +293,7 @@ td > .empty-state { margin: 8px 0; }
   .lnb { position: fixed; left: 0; top: 0; bottom: 0; z-index: 80; transform: translateX(-100%); transition: transform .25s; width: 260px; }
   .app.drawer-open .lnb { transform: none; }
   .lnb__collapse img { transform: rotate(0deg) !important; }
-  .topbar { height: 56px; padding: 0 12px; gap: 8px; }
+  .topbar { height: 52px; padding: 0 12px; gap: 8px; }
   .topbar__menu { display: flex; }
   .crumb a, .crumb span { display: none; }
   .topbar h1 { font-size: 15px; font-weight: 700; }
