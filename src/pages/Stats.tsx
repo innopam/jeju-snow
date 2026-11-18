@@ -37,7 +37,7 @@ export default function Stats() {
               <DateRange from={draft.from} to={draft.to} onChange={(from, to) => set({ from, to })} />
             </Field>
             <Field label="집계 단위"><Pills value={draft.unit} onChange={(unit) => set({ unit })} /></Field>
-            <Field label="행정시"><Dropdown value={draft.sido} options={SIDO} onChange={(sido) => set({ sido, dong: '읍면동 전체' })} width={150} /></Field>
+            <Field label="관할"><Dropdown value={draft.sido} options={SIDO} onChange={(sido) => set({ sido, dong: '읍면동 전체' })} width={150} /></Field>
             <Field label="읍면동"><Dropdown value={draft.dong} options={dongOptions(draft.sido)} onChange={(dong) => set({ dong })} width={150} /></Field>
             <Field label="위험 유형"><Dropdown value={draft.hazard} options={HAZARD_TYPES} onChange={(hazard) => set({ hazard })} width={150} /></Field>
             <Field label="위험 등급"><Dropdown value={draft.grade} options={GRADE_OPTIONS} onChange={(grade) => set({ grade })} width={150} /></Field>

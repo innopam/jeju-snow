@@ -145,8 +145,10 @@ const TYPES = ['결빙', '적설']
 export interface HazardGroup {
   name: string
   jur: string
-  rows: (HazardRow & { id: string })[]
+  rows: (HazardRow & { id: string; jur: string })[]
 }
+// 구간 관할 — 지방도(1100도로·5·16도로·평화로·번영로)는 도청, 나머지는 묶음의 행정시
+const ROAD_DOCHEONG = /^(1100로|1100도로|5·16도로|516로|평화로|번영로)$/
 export const HAZARD_LIST: HazardGroup[] = GROUPS.map(([name, jur, dongs, roads, counts], gi) => {
   let n = 0
   const rows = gi === 0
@@ -161,5 +163,5 @@ export const HAZARD_LIST: HazardGroup[] = GROUPS.map(([name, jur, dongs, roads, 
           return row(roads[(n - 1) % roads.length], dongs[(n - 1) % dongs.length], TYPES[h % 3], grade, surface, s0 + (h % (s1 - s0)), air, h % 2 ? '눈' : '흐림')
         }),
       )
-  return { name, jur, rows: rows.map((r, i) => ({ ...r, id: `${gi}-${i}` })) }
+  return { name, jur, rows: rows.map((r, i) => ({ ...r, id: `${gi}-${i}`, jur: ROAD_DOCHEONG.test(r.road) ? '도청' : jur })) }
 })

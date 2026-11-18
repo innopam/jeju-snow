@@ -7,7 +7,7 @@ import { HAZARD_COLORS } from '../../data/geo'
 
 const GRADE_OPTIONS = ['등급 전체', ...HAZARD_GRADES]
 const TYPE_OPTIONS = ['위험요소 전체', '결빙', '적설']
-const JUR_OPTIONS = ['관할 전체', '제주시', '서귀포시']
+const JUR_OPTIONS = ['관할 전체', '도청', '제주시', '서귀포시']
 // 위험요소 글자색 (적설은 띠 색보다 진하게)
 const TYPE_TEXT: Record<string, string> = { ...HAZARD_COLORS, 적설: '#0284c7' }
 const countBy = (rows: HazardRow[]) => HAZARD_GRADES.map((g) => rows.filter((r) => r.grade === g).length)
@@ -22,7 +22,7 @@ export default function HazardList({ onShowPlace }: { onShowPlace: (dong: string
   const [selected, setSelected] = useState<string | null>(null)
 
   const q = query.trim()
-  const inJur = HAZARD_LIST.filter((g) => jur === '관할 전체' || g.jur === jur)
+  const inJur = HAZARD_LIST.map((g) => ({ ...g, rows: g.rows.filter((r) => jur === '관할 전체' || r.jur === jur) })).filter((g) => g.rows.length > 0)
   const total = inJur.reduce((s, g) => s + g.rows.length, 0)
   const groups = inJur
     .map((g) => ({

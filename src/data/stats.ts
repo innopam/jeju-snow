@@ -1,7 +1,9 @@
 // UI-002 통계 — 조회 조건으로 결정되는 목업 통계 생성기 (같은 조건이면 항상 같은 값)
 
-export const SIDO = ['전체', '제주시', '서귀포시']
+// 관할: 도청(지방도) · 제주시 · 서귀포시
+export const SIDO = ['전체', '도청', '제주시', '서귀포시']
 export const DONG: Record<string, string[]> = {
+  도청: ['노형동', '아라동', '애월읍', '조천읍', '봉개동', '중문동', '안덕면', '남원읍'], // 지방도가 지나는 읍면동
   제주시: ['노형동', '아라동', '애월읍', '한림읍', '조천읍', '구좌읍', '봉개동', '오라동', '한경면'],
   서귀포시: ['중문동', '서귀동', '대정읍', '안덕면', '남원읍', '표선면', '성산읍', '대륜동'],
 }
@@ -55,7 +57,7 @@ export function statsData(f: StatsFilter) {
   const { from, to, unit, sido, dong, hazard, grade } = f
   const r = rng(`stats|${from}|${to}|${unit}|${sido}|${dong}|${hazard}`)
   const period = days(from, to) / 30
-  const area = dong !== '읍면동 전체' ? 0.12 : sido === '전체' ? 1 : sido === '제주시' ? 0.56 : 0.44
+  const area = dong !== '읍면동 전체' ? 0.12 : sido === '전체' ? 1 : sido === '도청' ? 0.3 : sido === '제주시' ? 0.4 : 0.3
   const typeScale = hazard === '전체' ? 1 : 0.3 + r() * 0.15
   const scale = period * area * typeScale
   const shown = grade.startsWith('전체') ? GRADES : [grade as Grade] // 등급 선택값은 GRADE_OPTIONS 중 하나
@@ -101,7 +103,7 @@ export type StatsData = ReturnType<typeof statsData>
 
 // 읍면동별 제설 현황 — 행정시 소계 + 읍면동 행
 function dongTable({ sido, dong }: StatsFilter, r: () => number, period: number) {
-  const cities = sido === '전체' ? ['제주시', '서귀포시'] : [sido]
+  const cities = sido === '전체' ? ['도청', '제주시', '서귀포시'] : [sido]
   return cities.map((city) => {
     const names = dong !== '읍면동 전체' && DONG[city].includes(dong) ? [dong] : DONG[city]
     const rows = names.map((name) => {
