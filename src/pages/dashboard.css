@@ -223,9 +223,11 @@
 .vrow__bat small { width: 30px; text-align: right; font-size: 11px; font-weight: 500; color: #555; }
 .vlist-head__hist { width: 28px; text-align: center; line-height: 1.3; margin-left: auto; }
 /* 선택한 행에만 작업 이력 버튼 (시안 875:19952) */
-.vrow__hist { width: 28px; height: 28px; border-radius: 6px; background: #312f82; display: grid; place-items: center; flex: none; }
-.vrow__hist img { width: 16px; height: 16px; }
-.vrow__hist:hover { filter: brightness(1.15); }
+/* 작업 버튼 (component library icon-button · Icon/list) — 상시 표시, 선택 행은 채움 */
+.vrow__hist { width: 28px; height: 28px; border: 1px solid var(--g200); border-radius: 7px; background: #fff; color: var(--p700); display: grid; place-items: center; flex: none; }
+.vrow__hist .icon { width: 16px; height: 16px; }
+.vrow__hist:hover { background: var(--p50); }
+.vrow__hist.on { border-color: var(--p600); background: var(--p600); color: #fff; }
 
 /* 작업 이력 · 저장 영상 (UI-001-04-01~03) — 패널 확대(1.12배) 전 치수 */
 .vh { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }

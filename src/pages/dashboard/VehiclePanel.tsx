@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { A } from '../../assets'
 import { Dropdown, EmptyState, SearchField } from '../../components/Controls'
 import type { LayoutContext } from '../../components/Layout'
 import { JURISDICTIONS, VEHICLES, VEHICLE_STATUS } from '../../data/dashboard'
+import Icon from '../../components/Icon'
 import VehicleHistory from './VehicleHistory'
 
 // UI-SIRS-001-04 대시보드 – 제설 차량 현황
@@ -79,7 +79,7 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
           <span style={{ flex: 1 }}>차량 · 운행 정보</span>
           <span style={{ width: 52, textAlign: 'center' }}>상태</span>
           <span style={{ width: 50, textAlign: 'center' }}>배터리</span>
-          <span className="vlist-head__hist">작업<br />이력</span>
+          <span className="vlist-head__hist">작업</span>
         </div>
         <div className="vlist">
           {list.map((v) => {
@@ -98,19 +98,18 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
                   <i><i style={{ width: Math.max(1, (v.battery / 100) * 12), background: low ? '#d92338' : '#16a05d' }} /></i>
                   <small style={{ color: low ? '#d92338' : undefined }}>{v.battery}%</small>
                 </span>
-                {isSel && (
-                  <button
-                    className="vrow__hist"
-                    title="작업 이력 · 저장 영상 보기"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setHistory(v.i)
-                    }}
-                    aria-label={`${v.name} 작업 이력`}
-                  >
-                    <img src={A.icInfoWhite} alt="" />
-                  </button>
-                )}
+                {/* 작업 버튼 — 모든 행에 상시 표시 (Icon/list), 선택한 행은 채움 */}
+                <button
+                  className={`vrow__hist${isSel ? ' on' : ''}`}
+                  title="작업 현황·이력 보기"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setHistory(v.i)
+                  }}
+                  aria-label={`${v.name} 작업 현황·이력 보기`}
+                >
+                  <Icon name="list" />
+                </button>
               </div>
             )
           })}
