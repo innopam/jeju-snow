@@ -67,10 +67,12 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
       <div className="vp__list-sec">
         <p className="section-title">차량 목록</p>
         <SearchField size="sm" placeholder="차량번호 · 호차 검색" value={query} onChange={setQuery} />
-        <div className="count-tabs type-chips" role="tablist">
+        {/* 차종 필터 — 디자인 가이드 Chips (component library Status/Icon Tab) */}
+        <div className="chips type-chips" role="group" aria-label="차종 필터">
           {TYPES.map((t) => (
-            <button key={t} role="tab" className={type === t ? 'on' : ''} onClick={() => setType(t)} aria-selected={type === t}>
-              {t} <em>{t === '전체' ? inJur.length : inJur.filter((v) => v.type === t).length}</em>
+            <button key={t} type="button" className={type === t ? 'on' : ''} onClick={() => setType(t)} aria-pressed={type === t}>
+              <span>{t}</span>
+              <strong>{t === '전체' ? inJur.length : inJur.filter((v) => v.type === t).length}</strong>
             </button>
           ))}
         </div>
