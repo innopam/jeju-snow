@@ -131,6 +131,10 @@
 }
 .dp, .vp { display: flex; flex-direction: column; gap: 16px; }
 .vp { flex: 1; min-height: 0; }
+/* 위험구간 목록은 패널 아래 끝까지 늘어나고, 목록 본문이 남는 높이를 채운다 (작은 화면은 최소 374px) */
+.dp { flex: 1 0 auto; }
+.dp > .hz { flex: 1 0 auto; }
+.hz-table { flex: 1 0 auto; display: flex; flex-direction: column; }
 .dp hr, .vp hr { border: 0; height: 1px; background: #e4e7ec; margin: 2px 0; width: 100%; }
 .dp__sec { display: flex; flex-direction: column; gap: 10px; }
 .dp__head { display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
@@ -183,7 +187,7 @@
 .hz-seg > span > i > i { width: 12px; border-radius: 4px; }
 .hz-seg b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #222; }
 .hz-seg small { padding-left: 16px; font-size: 11px; color: #999; overflow: hidden; text-overflow: ellipsis; }
-.hz-body { height: 374px; overflow-y: auto; scrollbar-width: none; }
+.hz-body { flex: 1 1 0; min-height: 374px; overflow-y: auto; scrollbar-width: none; }
 .hz-body::-webkit-scrollbar { display: none; }
 .hz-body > div:first-child > .hz-group { border-top: 0; }
 .hz-group { display: flex; align-items: center; gap: 6px; width: 100%; padding: 8px 12px 8px 10px; border-top: 1px solid #eef0f3; background: #fafbfc; text-align: left; border-radius: 0; }
