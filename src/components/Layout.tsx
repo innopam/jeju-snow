@@ -141,6 +141,8 @@ export default function Layout() {
 }
 
 const FILTERS = ['전체', '긴급', '미조치', '재결빙', '상습']
+// 칩 숫자 색 — component library status-count (neutral · danger · warning · info · success)
+const CHIP_COUNT: Record<string, string> = { 전체: '', 긴급: 'count--danger', 미조치: 'count--warning', 재결빙: 'count--info', 상습: 'count--success' }
 // '재결빙'은 알림 종류가 아니라 재결빙 위험 구간 알림(refreeze)을 모아 보는 필터
 const matches = (a: AlertItem, f: string) => f === '전체' || (f === '재결빙' ? a.refreeze : a.type === f)
 
@@ -176,10 +178,12 @@ function AlertDropdown({ alerts, filter, onFilter, onClose, onReadAll, onSelect 
         <p>위험 이벤트 알림</p>
         <button onClick={onReadAll}>모두 읽음</button>
       </div>
-      <div className="count-tabs alert-dd__chips" role="tablist">
+      {/* 알림 필터 — 디자인 가이드 Chips (component library Status/Icon Tab), 숫자 색은 상태별 */}
+      <div className="chips alert-dd__chips" role="group" aria-label="알림 필터">
         {FILTERS.map((f) => (
-          <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? 'on' : ''} onClick={() => onFilter(f)}>
-            {f} <em>{count(f)}건</em>
+          <button key={f} type="button" aria-pressed={filter === f} className={filter === f ? 'on' : ''} onClick={() => onFilter(f)}>
+            <span>{f}</span>
+            <strong className={CHIP_COUNT[f]}>{count(f)}</strong>
           </button>
         ))}
       </div>

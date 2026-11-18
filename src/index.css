@@ -234,6 +234,10 @@ button:hover > .radio.on { border-color: #2457d6; }
 .chips button.on { border-color: var(--p600); }
 .chips button:hover:not(.on) { background: var(--g50); }
 .chips strong { font-weight: 800; color: var(--p600); }
+.chips strong.count--danger { color: #d62233; }
+.chips strong.count--warning { color: #d47a00; }
+.chips strong.count--info { color: #3979ee; }
+.chips strong.count--success { color: #18a95b; }
 .count-tabs { display: flex; align-items: center; gap: 8px; }
 .count-tabs button { flex: 1 1 0; min-width: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; padding: 9px 16px; border: 1px solid transparent; border-radius: 10px; background: var(--g100); color: var(--g500); font-size: 14px; font-weight: 800; line-height: 21px; white-space: nowrap; }
 .count-tabs button.on { border-color: var(--p700); background: #fff; color: #111; }

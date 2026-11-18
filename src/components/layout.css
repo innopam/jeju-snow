@@ -6,8 +6,7 @@
 .alert-dd__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border-default); }
 .alert-dd__head p { font-size: 14px; font-weight: 700; color: #101828; }
 .alert-dd__head button { font-size: 10px; font-weight: 700; color: var(--link); }
-.alert-dd__chips { padding: 12px 16px; gap: 6px; }
-.alert-dd__chips button { padding: 7px 4px; font-size: 12px; }
+.alert-dd__chips { padding: 12px 16px 14px; }
 .alert-dd__list { max-height: 520px; overflow-y: auto; }
 .alert-row { width: 100%; display: flex; align-items: flex-start; text-align: left; position: relative; border-top: 1px solid var(--border-default); }
 .alert-row:hover { background: #fafbfc; }
