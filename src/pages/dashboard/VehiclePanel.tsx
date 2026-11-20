@@ -3,8 +3,9 @@ import { useOutletContext } from 'react-router-dom'
 import { Dropdown, EmptyState, SearchField } from '../../components/Controls'
 import type { LayoutContext } from '../../components/Layout'
 import { JURISDICTIONS, VEHICLES, VEHICLE_STATUS } from '../../data/dashboard'
-import Icon from '../../components/Icon'
-import VehicleHistory from './VehicleHistory'
+import VehicleHistory, { VideoModal, historyOf } from './VehicleHistory'
+import WorkOrder from './WorkOrder'
+import type { WorkOrderData } from './WorkOrder'
 
 // UI-SIRS-001-04 대시보드 – 제설 차량 현황
 const TYPES = ['전체', '유니목', '임차', '덤프', '다목적']
@@ -21,9 +22,15 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
   const [type, setType] = useState('전체')
   const [status, setStatus] = useState<string | null>(null)
   const [query, setQuery] = useState('')
-  const [history, setHistory] = useState<number | null>(null) // 작업 이력(저장 영상)을 보는 차량 번호
+  const [history, setHistory] = useState<number | null>(null) // 차량 현황(작업 · 저장 영상)을 보는 차량 번호
+  const [ordering, setOrdering] = useState(false) // 작업 지시 양식
+  const [live, setLive] = useState(false) // 실시간 영상 팝업
+  const [orders, setOrders] = useState<Record<string, WorkOrderData>>({}) // 보낸 작업 지시 (목업)
   const { setToast } = useOutletContext<Partial<LayoutContext> | undefined>() ?? {}
-  useEffect(() => setHistory(null), [selected]) // 지도에서 다른 차량을 고르면 목록으로
+  useEffect(() => {
+    setHistory(null) // 지도에서 다른 차량을 고르면 목록으로
+    setOrdering(false)
+  }, [selected])
 
   const inJur = useMemo(() => VEHICLES.map((v, i) => ({ ...v, i })).filter((v) => jur === '전체' || v.jur === jur), [jur])
   const list = useMemo(
@@ -39,14 +46,35 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
     [inJur, type, status, query],
   )
 
-  if (history != null)
+  if (history != null) {
+    const vh = VEHICLES[history]
+    if (ordering)
+      return (
+        <WorkOrder
+          vehicle={vh}
+          pastRoads={historyOf(vh).map((r) => r.road)}
+          onCancel={() => setOrdering(false)}
+          onSend={(o) => {
+            setOrders((m) => ({ ...m, [vh.name]: o }))
+            setOrdering(false)
+            setToast?.(`${vh.name}에 작업 지시를 보냈습니다. 제설 작업 모바일로 전달됩니다 (목업).`)
+          }}
+        />
+      )
     return (
-      <VehicleHistory
-        vehicle={VEHICLES[history]}
-        onBack={() => setHistory(null)}
-        onOrder={(v) => setToast?.(`${v.name}에 작업 지시를 보냈습니다 (목업).`)}
-      />
+      <>
+        <VehicleHistory
+          key={vh.name}
+          vehicle={vh}
+          order={orders[vh.name]}
+          onBack={() => setHistory(null)}
+          onOrder={() => setOrdering(true)}
+          onLive={() => setLive(true)}
+        />
+        {live && <VideoModal title={`${vh.name} (${vh.type}) · 실시간 영상 · ${vh.info.split(' · ')[0]}`} duration={3600} onClose={() => setLive(false)} />}
+      </>
     )
+  }
 
   return (
     <div className="vp">
@@ -81,7 +109,7 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
           <span style={{ flex: 1 }}>차량 · 운행 정보</span>
           <span style={{ width: 52, textAlign: 'center' }}>상태</span>
           <span style={{ width: 50, textAlign: 'center' }}>배터리</span>
-          <span className="vlist-head__hist">작업</span>
+          <span className="vlist-head__hist">작업<br />이력</span>
         </div>
         <div className="vlist">
           {list.map((v) => {
@@ -100,7 +128,7 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
                   <i><i style={{ width: Math.max(1, (v.battery / 100) * 12), background: low ? '#d92338' : '#16a05d' }} /></i>
                   <small style={{ color: low ? '#d92338' : undefined }}>{v.battery}%</small>
                 </span>
-                {/* 작업 버튼 — 모든 행에 상시 표시 (Icon/list), 선택한 행은 채움 */}
+                {/* 작업이력 버튼 — 모든 행에 상시 표시 (Figma Icon/car 456:1045), 선택한 행은 채움 */}
                 <button
                   className={`vrow__hist${isSel ? ' on' : ''}`}
                   title="작업 현황·이력 보기"
@@ -110,7 +138,7 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
                   }}
                   aria-label={`${v.name} 작업 현황·이력 보기`}
                 >
-                  <Icon name="list" />
+                  <i className="vrow__car" aria-hidden />
                 </button>
               </div>
             )

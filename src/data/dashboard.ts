@@ -36,8 +36,8 @@ const hash = (str: string) => [...str].reduce((h, c) => (h * 31 + c.charCodeAt(0
 
 // 제설 차량 목록 (UI-001-04) — mapId 는 지도 위 차량 아이콘과 연결
 export const VEHICLE_STATUS: Record<string, { label: string; tone: string }> = {
-  // 배지 = component library Grade badge 색조 (mild · vehicle · neutral)
-  working: { label: '제설 중', tone: 'mild' },
+  // 배지 = component library Grade badge 모양. 제설 중은 Figma 노랑(working), 대기·종료는 라이브러리 vehicle · neutral
+  working: { label: '제설 중', tone: 'working' },
   standby: { label: '대기', tone: 'vehicle' },
   done: { label: '종료', tone: 'neutral' },
 }

@@ -203,6 +203,7 @@ button:hover > .radio.on { border-color: #2457d6; }
 .grade--danger { background: #ffe8e9; color: #d92332; }
 .grade--warning { background: #fff1d7; color: #d97800; }
 .grade--mild { background: #e9f8ef; color: #169c55; }
+.grade--working { background: #fff8d9; color: #b98900; } /* 차량 상태 제설 중 — Figma badge/mild (노랑) */
 .grade--vehicle { background: #edf4ff; color: #3979ee; }
 .grade--complete { background: #f0edff; color: #4b43a3; }
 .grade--neutral { background: #ededf0; color: #6b6b73; }
@@ -329,3 +330,6 @@ td > .empty-state { margin: 8px 0; }
 .lnb.collapsed .lnb__collapse img { width: 15px; height: 15px; }
 .lnb.collapsed + .main .topbar { padding-left: 46px; }
 .dropdown--sm .dropdown__list { left: auto; min-width: 100%; }
+
+/* 화면에는 숨기고 보조기기에만 */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

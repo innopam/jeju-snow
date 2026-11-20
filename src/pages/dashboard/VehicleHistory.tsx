@@ -3,9 +3,12 @@ import type { MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { A } from '../../assets'
 import Icon from '../../components/Icon'
+import { VEHICLE_STATUS } from '../../data/dashboard'
 import type { Vehicle } from '../../data/dashboard'
+import { SECTIONS } from './WorkOrder'
+import type { WorkOrderData } from './WorkOrder'
 
-// UI-001-04-01~03 차량별 영상 조회 — 작업 이력(저장 영상) 목록 · 펼쳐 재생 · 크게 보기
+// UI-001-04-02·04·05 차량 현황 조회 — 진행 중인 작업(또는 작업 지시) · 작업 이력(저장 영상) 펼쳐 재생 · 크게 보기
 const DAY = ['일', '월', '화', '수', '목', '금', '토']
 // 시안의 11호차 이력 (일자 · 시작 · 끝 · 길이(초) · 노선 · 운행 상태 · 속도)
 const DESIGN_LOG: [date: string, from: string, to: string, sec: number, road: string, state: string, speed: number][] = [
@@ -27,47 +30,88 @@ const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) %
 const mmss = (sec: number) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`
 
 // 차량별 이력 — 시안 이력을 바탕으로 차량마다 노선을 바꿔 만든다 (목업)
-function historyOf(vehicle: Vehicle) {
+export function historyOf(vehicle: Vehicle) {
   const h = hash(vehicle.name)
   const home = vehicle.info.split(' · ')[0]
   return DESIGN_LOG.map(([date, from, to, sec, road, state, speed], i) => {
     const r = i === 0 && ROADS.includes(home) ? home : vehicle.name === '11호차' ? road : ROADS[(ROADS.indexOf(road) + h) % ROADS.length]
     const d = new Date(`${date}T00:00:00`)
-    return { id: i, date: date.replaceAll('-', '.'), day: `${DAY[d.getDay()]}요일`, from, to, sec, road: r, state, speed }
+    return { id: i, date: date.replaceAll('-', '.'), day: `${DAY[d.getDay()]}요일`, from, to, sec, road: r, state, speed, video: i !== 1 }
   })
 }
 
 type HistoryRec = ReturnType<typeof historyOf>[number]
 
+// 작업 단계 — Done=체크 · Current=4px 링 · Upcoming=회색 번호 (Figma Step Item)
+function Steps({ steps }: { steps: [label: string, sub: string, state: 'done' | 'current' | 'upcoming'][] }) {
+  return (
+    <div className="steps">
+      {steps.map(([label, sub, st], i) => (
+        <div key={label} className={`steps__item ${st}`}>
+          <span className="steps__dot">{st === 'done' ? <Icon name="check" size={10} /> : st === 'upcoming' ? i + 1 : null}</span>
+          <b>{label}</b>
+          <small>{sub}</small>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 interface VehicleHistoryProps {
   vehicle: Vehicle
+  order?: WorkOrderData // 이 화면에서 보낸 작업 지시 (목업)
   onBack: () => void
-  onOrder: (v: Vehicle) => void
+  onOrder: () => void
+  onLive: () => void
 }
-export default function VehicleHistory({ vehicle, onBack, onOrder }: VehicleHistoryProps) {
+export default function VehicleHistory({ vehicle, order, onBack, onOrder, onLive }: VehicleHistoryProps) {
   const list = useMemo(() => historyOf(vehicle), [vehicle])
-  const [open, setOpen] = useState<number | null>(null)
+  const [open, setOpen] = useState<number | null>(() => (vehicle.status === 'working' ? 0 : null))
   const [big, setBig] = useState<HistoryRec | null>(null)
-  const idle = vehicle.status !== 'working'
+  const working = vehicle.status === 'working'
+  const st = VEHICLE_STATUS[vehicle.status]
+  const [road, speed] = vehicle.info.split(' · ')
+  const section = vehicle.name === '11호차' ? '1100도로 · 성판악 (K-12)' : (SECTIONS[road]?.[0] ?? road).replace(' ~ ', ' · ')
 
   return (
     <div className="vh">
       <div className="vh__head">
         <button className="vh__back" onClick={onBack} aria-label="차량 목록으로">
-          <img src={A.icArrowLeft} alt="" />
+          <Icon name="chevron-left" />
         </button>
         <b>{vehicle.name}</b>
-        <span className="pbadge tone-etc">{vehicle.type}</span>
-        <span style={{ flex: 1 }} />
-        <small>저장 영상 {list.length}건</small>
+        <span className="vh__type">{vehicle.type}</span>
+        {working && <span className={`grade grade--${st.tone}`}><i />{st.label}</span>}
       </div>
-      {idle && (
+
+      {working ? (
+        <div className="vh__now vh__now--work">
+          <div className="vh__now-top">
+            <b>진행 중인 작업</b>
+            <button className="wo__link" onClick={onLive}>실시간 영상 ›</button>
+          </div>
+          <strong>{section}</strong>
+          <small>기사 김제설 · {/km\/h/.test(speed ?? '') ? speed : '수신 지연'} · 진행 2.1 / 4.2km</small>
+          <Steps steps={[['지시', '14:20:08', 'done'], ['제설 시작', '14:32:05', 'done'], ['제설 종료', '진행 중 · 18분째', 'current']]} />
+          <small>전달 메모 : 성판악 구간 노면 결빙. 제설제 살포 병행 바랍니다.</small>
+        </div>
+      ) : order ? (
+        <div className="vh__now vh__now--work">
+          <div className="vh__now-top">
+            <b>지시한 작업</b>
+            <span className="pbadge tone-etc">{order.kind} · {order.priority}</span>
+          </div>
+          <strong>{order.sections.join(', ')}</strong>
+          <Steps steps={[['지시', order.at, 'done'], [`${order.kind} 시작`, '대기 중', 'current'], [`${order.kind} 종료`, '-', 'upcoming']]} />
+          {order.memo && <small>전달 메모 : {order.memo}</small>}
+        </div>
+      ) : (
         <div className="vh__now">
           <b>진행 중인 작업이 없습니다</b>
-          <small>{vehicle.info.split(' · ')[0]} · {vehicle.status === 'standby' ? `${vehicle.info.split(' · ')[1] ?? ''}째 대기` : '운행 종료'} · 기사 김제설</small>
-          <button className="btn btn--primary" onClick={() => onOrder(vehicle)}>작업 지시</button>
+          <button className="btn btn--primary" onClick={onOrder}>작업 지시</button>
         </div>
       )}
+
       <div className="vh__th">
         <span className="c-date">일자</span>
         <span className="c-time">시간</span>
@@ -77,31 +121,34 @@ export default function VehicleHistory({ vehicle, onBack, onOrder }: VehicleHist
       <div className="vh__list">
         {list.map((r) => {
           const on = open === r.id
+          // 진행 중인 작업(맨 위)만 "제설 중", 지난 작업은 "제설 완료"
+          const state = r.state === '제설 중' && !(working && r.id === 0) ? '제설 완료' : r.state
           return (
             <div key={r.id} className={`vh-item${on ? ' on' : ''}`}>
-              <button className="vh-row" onClick={() => setOpen(on ? null : r.id)} aria-expanded={on}>
+              {/* 저장 영상이 없는 작업도 선택(푸른 배경)은 되고, 펼침(플레이어)만 없다 */}
+              <button className="vh-row" onClick={() => setOpen(on ? null : r.id)} aria-expanded={r.video ? on : undefined} aria-pressed={on}>
                 <span className="c-date"><b>{r.date}</b><small>{r.day}</small></span>
                 <span className="c-time"><b>{r.from} ~ {r.to}</b><small>{Math.floor(r.sec / 60)}분 {String(r.sec % 60).padStart(2, '0')}초</small></span>
-                <span className="c-info"><b>{r.road}</b><small>{r.state} · {r.speed}km/h</small></span>
-                <img className="c-chev" src={on ? A.icChevronUp18 : A.icChevronDown18} alt="" />
+                <span className="c-info"><b>{r.road}</b><small>{state} · {r.speed}km/h</small></span>
+                {r.video ? <img className="c-chev" src={on ? A.icChevronUp18 : A.icChevronDown18} alt="" /> : <span className="c-chev" />}
               </button>
-              {on && (
+              {on && r.video && (
                 <div className="vh-play">
                   <VideoPlayer key={r.id} duration={r.sec} onExpand={() => setBig(r)} />
-                  <div className="vh-play__info">
-                    <small>{r.road} · {r.from}:05 ~ {r.to}:17 · {r.id + 1}/{list.length}</small>
-                    <button className="btn btn--sm btn--blue" onClick={() => setBig(r)}>
-                      <img src={A.icExpandWhite} alt="" className="icon" />
-                      크게 보기
-                    </button>
-                  </div>
+                  <small className="vh-play__info">녹화영상 정보 : {r.road}~{r.road} {r.from}:05 ~ {r.to}:17</small>
                 </div>
               )}
             </div>
           )
         })}
       </div>
-      {big && <VideoModal vehicle={vehicle} rec={big} onClose={() => setBig(null)} />}
+      {big && (
+        <VideoModal
+          title={`${vehicle.name} (${vehicle.type}) · ${big.date} ${big.from} ~ ${big.to} · ${big.road}`}
+          duration={big.sec}
+          onClose={() => setBig(null)}
+        />
+      )}
     </div>
   )
 }
@@ -151,7 +198,7 @@ export function VideoPlayer({ duration, onExpand }: { duration: number; onExpand
 }
 
 // 팝업 · 영상 크게 보기 (UI-001-04-03) — 닫기(✕) 또는 ESC 시 목록으로 복귀
-function VideoModal({ vehicle, rec, onClose }: { vehicle: Vehicle; rec: HistoryRec; onClose: () => void }) {
+export function VideoModal({ title, duration, onClose }: { title: string; duration: number; onClose: () => void }) {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     document.addEventListener('keydown', esc)
@@ -161,12 +208,11 @@ function VideoModal({ vehicle, rec, onClose }: { vehicle: Vehicle; rec: HistoryR
     <div className="vmodal-dim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="vmodal" role="dialog" aria-modal="true" aria-label="영상 크게 보기">
         <div className="vmodal__head">
-          <b>{vehicle.name} ({vehicle.type}) · {rec.date} {rec.from} ~ {rec.to} · {rec.road}</b>
+          <b>{title}</b>
           <button onClick={onClose} aria-label="닫기"><Icon name="close" /></button>
         </div>
         <div className="vmodal__body">
-          <VideoPlayer duration={rec.sec} />
-          <p>영상은 일시정지 상태로 열립니다. 중앙 재생 버튼 또는 하단 ▶ 로 재생하세요. 닫기(✕) 또는 ESC 시 목록 화면으로 복귀합니다.</p>
+          <VideoPlayer duration={duration} />
         </div>
       </div>
     </div>,

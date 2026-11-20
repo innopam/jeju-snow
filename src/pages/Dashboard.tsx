@@ -31,7 +31,6 @@ import { HAS_VWORLD, createBaseLayers, createCadastralLayer } from '../map/basem
 import { fromLonLat, toLonLat, useOlMap } from '../map/useOlMap'
 import DashboardPanel from './dashboard/DashboardPanel'
 import VehiclePanel from './dashboard/VehiclePanel'
-import VehiclePopup from './dashboard/VehiclePopup'
 import { BP, useMedia } from '../useMedia'
 import './dashboard.css'
 
@@ -526,8 +525,6 @@ export default function Dashboard() {
           )}
         </div>
       )}
-
-      {island && selectedVehicle && tab === 'vehicles' && <VehiclePopup key={selected} vehicle={selectedVehicle} onClose={() => setSelected(null)} />}
 
       <div className={`legend${legendOpen ? '' : ' closed'}`}>
         <button className="legend__head" onClick={() => setLegendOpen((o) => !o)} aria-expanded={legendOpen}>
