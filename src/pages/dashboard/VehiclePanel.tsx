@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { Dropdown, EmptyState, SearchField } from '../../components/Controls'
 import type { LayoutContext } from '../../components/Layout'
 import { JURISDICTIONS, VEHICLES, VEHICLE_STATUS } from '../../data/dashboard'
-import VehicleHistory, { VideoModal, historyOf } from './VehicleHistory'
+import VehicleHistory, { historyOf } from './VehicleHistory'
 import WorkOrder from './WorkOrder'
 import type { WorkOrderData } from './WorkOrder'
 
@@ -24,7 +24,6 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
   const [query, setQuery] = useState('')
   const [history, setHistory] = useState<number | null>(null) // 차량 현황(작업 · 저장 영상)을 보는 차량 번호
   const [ordering, setOrdering] = useState(false) // 작업 지시 양식
-  const [live, setLive] = useState(false) // 실시간 영상 팝업
   const [orders, setOrders] = useState<Record<string, WorkOrderData>>({}) // 보낸 작업 지시 (목업)
   const { setToast } = useOutletContext<Partial<LayoutContext> | undefined>() ?? {}
   useEffect(() => {
@@ -62,17 +61,13 @@ export default function VehiclePanel({ selected, onSelect }: { selected: number 
         />
       )
     return (
-      <>
-        <VehicleHistory
-          key={vh.name}
-          vehicle={vh}
-          order={orders[vh.name]}
-          onBack={() => setHistory(null)}
-          onOrder={() => setOrdering(true)}
-          onLive={() => setLive(true)}
-        />
-        {live && <VideoModal title={`${vh.name} (${vh.type}) · 실시간 영상 · ${vh.info.split(' · ')[0]}`} duration={3600} onClose={() => setLive(false)} />}
-      </>
+      <VehicleHistory
+        key={vh.name}
+        vehicle={vh}
+        order={orders[vh.name]}
+        onBack={() => setHistory(null)}
+        onOrder={() => setOrdering(true)}
+      />
     )
   }
 

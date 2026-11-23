@@ -62,9 +62,8 @@ interface VehicleHistoryProps {
   order?: WorkOrderData // 이 화면에서 보낸 작업 지시 (목업)
   onBack: () => void
   onOrder: () => void
-  onLive: () => void
 }
-export default function VehicleHistory({ vehicle, order, onBack, onOrder, onLive }: VehicleHistoryProps) {
+export default function VehicleHistory({ vehicle, order, onBack, onOrder }: VehicleHistoryProps) {
   const list = useMemo(() => historyOf(vehicle), [vehicle])
   const [open, setOpen] = useState<number | null>(() => (vehicle.status === 'working' ? 0 : null))
   const [big, setBig] = useState<HistoryRec | null>(null)
@@ -88,7 +87,6 @@ export default function VehicleHistory({ vehicle, order, onBack, onOrder, onLive
         <div className="vh__now vh__now--work">
           <div className="vh__now-top">
             <b>진행 중인 작업</b>
-            <button className="wo__link" onClick={onLive}>실시간 영상 ›</button>
           </div>
           <strong>{section}</strong>
           <small>기사 김제설 · {/km\/h/.test(speed ?? '') ? speed : '수신 지연'} · 진행 2.1 / 4.2km</small>
@@ -153,7 +151,7 @@ export default function VehicleHistory({ vehicle, order, onBack, onOrder, onLive
   )
 }
 
-// 저장 영상 플레이어 — 일시정지 상태로 열리고, 재생하면 진행 막대가 움직인다 (목업: 영상 대신 화면 그라데이션)
+// 영상 플레이어 — 진행 중인 작업에 실시간 영상이 있으면 vplayer__screen 에 표출(연동 미정), 저장 영상은 일시정지 상태로 열리고, 재생하면 진행 막대가 움직인다 (목업: 영상 대신 화면 그라데이션)
 export function VideoPlayer({ duration, onExpand }: { duration: number; onExpand?: () => void }) {
   const [playing, setPlaying] = useState(false)
   const [pos, setPos] = useState(0)
